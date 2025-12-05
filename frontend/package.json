@@ -1,5 +1,5 @@
 {
-  "name": "scholarship-frontend",
+  "name": "wsufiji-website-frontend",
   "version": "1.0.0",
   "description": "Frontend for scholarship application platform",
   "main": "index.html",
@@ -10,7 +10,14 @@
     "copy-files": "mkdir -p dist && mkdir -p dist/public && mkdir -p dist/src && cp index.html dist/ && cp -r public/* dist/public/ && cp -r src/* dist/src/",
     "preview": "npm run build && python3 -m http.server 3000 --directory dist"
   },
-  "keywords": ["scholarship", "application", "cloudflare-pages"],
+  "keywords": [
+    "scholarship",
+    "application",
+    "cloudflare-pages"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.53.0"
+  }
 }
