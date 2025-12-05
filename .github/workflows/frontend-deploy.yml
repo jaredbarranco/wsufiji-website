@@ -4,9 +4,11 @@ on:
   push:
     branches: [ "main" ]
     paths:
+      - ".github/workflows/frontend-deploy.yml"
       - "frontend/**"   # Only triggers when frontend changes
   pull_request:
     paths:
+      - ".github/workflows/frontend-deploy.yml"
       - "frontend/**"   # Optional: PR previews only when frontend changes
 
 jobs:
