@@ -1,0 +1,127 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.construction-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+}
+
+.construction-content {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    max-width: 500px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+}
+
+.construction-image {
+    width: 300px;
+    height: auto;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.construction-content h1 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.construction-content h2 {
+    color: #e74c3c;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.construction-message {
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.8;
+}
+
+.construction-details {
+    border-top: 2px solid #ecf0f1;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.construction-details p {
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+
+
+/* Animation for the construction image */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.construction-image {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .construction-container {
+        padding: 1rem;
+    }
+    
+    .construction-content {
+        padding: 2rem;
+    }
+    
+    .construction-content h1 {
+        font-size: 2rem;
+    }
+    
+    .construction-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .construction-image {
+        width: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .construction-content {
+        padding: 1.5rem;
+    }
+    
+    .construction-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .construction-content h2 {
+        font-size: 1.3rem;
+    }
+    
+    .construction-image {
+        width: 200px;
+    }
+}
