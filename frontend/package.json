@@ -5,8 +5,10 @@
   "main": "index.html",
   "scripts": {
     "dev": "python3 -m http.server 3000",
-    "build": "echo 'No build step needed for static HTML'",
-    "preview": "python3 -m http.server 3000"
+    "build": "npm run clean && npm run copy-files",
+    "clean": "rm -rf dist",
+    "copy-files": "mkdir -p dist && mkdir -p dist/public && mkdir -p dist/src && cp index.html dist/ && cp -r public/* dist/public/ && cp -r src/* dist/src/",
+    "preview": "npm run build && python3 -m http.server 3000 --directory dist"
   },
   "keywords": ["scholarship", "application", "cloudflare-pages"],
   "author": "",
