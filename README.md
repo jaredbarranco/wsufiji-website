@@ -25,6 +25,39 @@ scholarship-app/
 │   └── config.toml
 └── .github/workflows/ # CI/CD pipelines
 ```
+## Layer Integration Visualization
+```mermaid
+flowchart TD
+    %% Applicant Submission Flow
+    A1["Applicant Frontend Form<br>(Cloudflare Pages /)"] -->|POST JSON| B1["Cloudflare Worker<br>/api/submit"]
+    B1 -->|Insert into Supabase| C1["Supabase DB<br>(applications, uploads)"]
+    B1 --> D1["Optional Email/Notifications<br>(confirmation to applicant / alert to admin)"]
+    C1 --> B1
+
+    %% Reviewer Portal Flow
+    A2["Reviewer Frontend<br>(Cloudflare Pages /admin)"] -->|fetch JSON| B2["Cloudflare Worker<br>/api/review"]
+    B2 -->|Validate Auth / Filter Rows| C2["Supabase DB<br>(applications, reviewers, scores)"]
+    C2 -->|Filtered JSON| B2
+    B2 -->|return JSON| A2
+    B2 --> D2["Optional Email/Notifications<br>(new score or comment)"]
+
+    %% Authentication / Security
+    B2 -.-> E["Authentication Layer<br>(JWT via Supabase Auth<br>or Cloudflare Access)"]
+    B2 -.-> E
+
+    %% Optional Notes
+    style D1 fill:#f9f,stroke:#333,stroke-width:2px
+    style D2 fill:#f9f,stroke:#333,stroke-width:2px
+
+    %% Legend
+    classDef frontend fill:#cff,stroke:#333,stroke-width:1px
+    classDef worker fill:#fcf,stroke:#333,stroke-width:1px
+    classDef db fill:#cfc,stroke:#333,stroke-width:1px
+
+    class A1,A2 frontend
+    class B1,B2 worker
+    class C1,C2 db
+```
 
 ## Setup Instructions
 
