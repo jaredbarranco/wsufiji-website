@@ -139,3 +139,14 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .DS_Store
 **/.DS_Store
+# Supabase local state (do NOT commit)
+supabase/.branches
+supabase/.temp
+supabase/docker
+supabase/.env
+supabase/.env.local
+supabase/db/remote*  # optional
+
+# Node stuff (if Edge Functions use npm/yarn)
+supabase/functions/**/node_modules
+
