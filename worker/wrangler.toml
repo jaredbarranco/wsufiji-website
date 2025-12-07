@@ -1,9 +1,3 @@
 name = "scholarship-api"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
-
-[vars]
-SUPABASE_URL = "https://your-project-ref.supabase.co"
-
-# secrets (set via wrangler CLI, not committed)
-# SUPABASE_SERVICE_ROLE_KEY

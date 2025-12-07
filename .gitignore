@@ -150,3 +150,10 @@ supabase/db/remote*  # optional
 # Node stuff (if Edge Functions use npm/yarn)
 supabase/functions/**/node_modules
 
+
+.env
+**/.env
+
+worker/.dev.env
+worker/.dev.vars
+worker/.wrangler/tmp
