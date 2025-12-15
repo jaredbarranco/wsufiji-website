@@ -477,6 +477,128 @@ body {
     background: white;
 }
 
+/* Custom Array Field Template Styles */
+.custom-array-field {
+    margin-bottom: 1rem;
+}
+
+.custom-array-item {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    transition: border-color 0.3s ease;
+}
+
+.custom-array-item:hover {
+    border-color: #3498db;
+}
+
+.custom-array-item-content {
+    margin-bottom: 1rem;
+}
+
+.custom-array-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.custom-remove-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.custom-remove-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.custom-array-add {
+    text-align: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 2px dashed #28a745;
+    border-radius: 8px;
+}
+
+.custom-add-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.custom-add-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Add instruction text */
+.custom-array-add::before {
+    content: "Add another leadership position to your application";
+    display: block;
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Fallback styles for default rjsf array buttons */
+.application-form .array-item button,
+.application-form .array-item-add button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 36px;
+    min-width: 80px;
+}
+
+/* Add buttons - green */
+.application-form .array-item button[title*="Add"],
+.application-form .array-item-add button {
+    background: #28a745;
+    color: white;
+}
+
+/* Remove buttons - red */
+.application-form .array-item button[title*="Remove"] {
+    background: #dc3545;
+    color: white;
+}
+
+/* Make array item titles more prominent */
+.application-form .array-item legend {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
 .application-form legend {
     padding: 0 1rem;
     font-weight: 600;

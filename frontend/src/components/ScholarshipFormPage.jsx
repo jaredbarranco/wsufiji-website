@@ -4,6 +4,46 @@ import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
 
+// Custom Array Field Template with better buttons
+const CustomArrayFieldTemplate = (props) => {
+  const { items, canAdd, onAddClick } = props;
+  
+  return (
+    <div className="custom-array-field">
+      {items.map((element, index) => (
+        <div key={element.key} className="custom-array-item">
+          <div className="custom-array-item-content">
+            {element.children}
+          </div>
+          {element.hasRemove && (
+            <div className="custom-array-item-actions">
+              <button
+                type="button"
+                className="custom-remove-btn"
+                onClick={element.onDropIndexClick(index)}
+              >
+                🗑️ Remove Position {index + 1}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+      
+      {canAdd && (
+        <div className="custom-array-add">
+          <button
+            type="button"
+            className="custom-add-btn"
+            onClick={onAddClick}
+          >
+            ➕ Add Leadership Position
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ScholarshipFormPage = () => {
   const { scholarshipSlug } = useParams();
   const [schema, setSchema] = useState(null);
@@ -196,6 +236,9 @@ const ScholarshipFormPage = () => {
             onChange={handleChange}
             onSubmit={handleSubmit}
             className="application-form"
+            templates={{
+              ArrayFieldTemplate: CustomArrayFieldTemplate
+            }}
           >
             {/* Custom Submit Button & Turnstile Area */}
             <div className="security-section">

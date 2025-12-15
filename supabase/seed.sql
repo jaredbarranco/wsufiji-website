@@ -206,6 +206,11 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
           "rows": 3
         }
       }
+    },
+    "ui:options": {
+      "addable": true,
+      "removable": true,
+      "orderable": false
     }
   },
   "leadershipEssay": {
