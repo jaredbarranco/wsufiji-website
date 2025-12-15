@@ -22,7 +22,7 @@ export default {
       const slug = url.pathname.split('/').pop();
       
       try {
-        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         
         const { data, error } = await supabase
           .from('scholarships')
@@ -165,7 +165,7 @@ export default {
     // Endpoint 3: GET /scholarships (optional - for listing available scholarships)
     if (request.method === 'GET' && url.pathname === '/scholarships') {
       try {
-        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         
         const { data, error } = await supabase
           .from('scholarships')

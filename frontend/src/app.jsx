@@ -26,7 +26,8 @@ const ApplyPage = () => {
         async function loadForm() {
             try {
                 // Fetch from your Cloudflare Worker: /api/schema/:slug
-                const res = await fetch(`https://your-worker.workers.dev/schema/${scholarshipSlug}`);
+                const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+                const res = await fetch(`${API_BASE}/schema/${scholarshipSlug}`);
 
                 if (!res.ok) {
                     throw new Error('Scholarship not found');
@@ -84,7 +85,8 @@ const ApplyPage = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch('https://your-worker.workers.dev/submit', {
+            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+            const response = await fetch(`${API_BASE}/submit`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

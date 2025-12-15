@@ -26,7 +26,8 @@ class ScholarshipApplication {
     async loadForm() {
         try {
             // Try to load from the worker
-            const response = await fetch(`http://localhost:8787/schema/${this.scholarshipSlug}`);
+            const API_BASE = window.ENV?.API_BASE_URL || 'http://localhost:8787';
+            const response = await fetch(`${API_BASE}/schema/${this.scholarshipSlug}`);
             
             if (!response.ok) {
                 throw new Error('Scholarship not found');
@@ -221,8 +222,22 @@ class ScholarshipApplication {
             submitBtn.textContent = 'Submitting...';
             submitBtn.disabled = true;
             
-            // For testing, simulate submission
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Submit to worker API
+            const API_BASE = window.ENV?.API_BASE_URL || 'http://localhost:8787';
+            const response = await fetch(`${API_BASE}/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    slug: this.scholarshipSlug,
+                    submission: this.formData,
+                    token: 'test-token' // In production, this would be from Turnstile
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Submission failed');
+            }
             
             // Clear saved data
             localStorage.removeItem(this.storageKey);
