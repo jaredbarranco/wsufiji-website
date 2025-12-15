@@ -1,324 +1,311 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scrolling for navigation links
-    const navLinks = document.querySelectorAll('a[href^="#"]');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Leadership roles management
-    let leadershipRoleCount = 0;
-    const addLeadershipBtn = document.getElementById('add-leadership-role');
-    const leadershipContainer = document.getElementById('leadership-roles-container');
-
-    addLeadershipBtn.addEventListener('click', function() {
-        leadershipRoleCount++;
-        const newRole = createLeadershipRole(leadershipRoleCount);
-        leadershipContainer.appendChild(newRole);
-    });
-
-    function createLeadershipRole(roleId) {
-        const roleDiv = document.createElement('div');
-        roleDiv.className = 'leadership-role';
-        roleDiv.dataset.roleId = roleId;
+// Simple vanilla JavaScript version for testing
+class ScholarshipApplication {
+    constructor() {
+        this.scholarshipSlug = this.getSlugFromUrl();
+        this.storageKey = `draft_${this.scholarshipSlug}`;
+        this.schema = null;
+        this.uiSchema = null;
+        this.formData = null;
+        this.isSubmitting = false;
         
-        roleDiv.innerHTML = `
-            <div class="role-header">
-                <h4>Leadership Role #${roleId}</h4>
-                <button type="button" class="remove-role" onclick="removeLeadershipRole(${roleId})">Remove</button>
+        this.init();
+    }
+
+    getSlugFromUrl() {
+        const path = window.location.pathname;
+        const match = path.match(/\/apply\/(.+)/);
+        return match ? match[1] : 'test-scholarship-simple';
+    }
+
+    async init() {
+        console.log('Initializing application for:', this.scholarshipSlug);
+        await this.loadForm();
+        this.setupEventListeners();
+    }
+
+    async loadForm() {
+        try {
+            // Try to load from the worker
+            const response = await fetch(`http://localhost:8787/schema/${this.scholarshipSlug}`);
+            
+            if (!response.ok) {
+                throw new Error('Scholarship not found');
+            }
+            
+            const data = await response.json();
+            this.schema = data.form_schema;
+            this.uiSchema = data.ui_schema;
+            
+        } catch (error) {
+            console.error('Error loading form:', error);
+            // Use fallback schema
+            this.schema = this.getFallbackSchema();
+            this.uiSchema = this.getFallbackUiSchema();
+        }
+
+        // Load saved data from localStorage
+        const savedDraft = localStorage.getItem(this.storageKey);
+        if (savedDraft) {
+            try {
+                this.formData = JSON.parse(savedDraft);
+            } catch (e) {
+                console.error('Error parsing saved data:', e);
+                this.formData = {};
+            }
+        } else {
+            this.formData = {};
+        }
+
+        this.renderForm();
+    }
+
+    getFallbackSchema() {
+        return {
+            title: "Test Scholarship Application",
+            type: "object",
+            required: ["fullName", "email", "essay"],
+            properties: {
+                fullName: { "type": "string", "title": "Full Name" },
+                email: { "type": "string", "format": "email", "title": "Email Address" },
+                phone: { "type": "string", "title": "Phone Number" },
+                essay: { 
+                    "type": "string", 
+                    "title": "Why do you deserve this scholarship?", 
+                    "minLength": 100 
+                }
+            }
+        };
+    }
+
+    getFallbackUiSchema() {
+        return {
+            "essay": { "ui:widget": "textarea", "ui:options": { "rows": 10 } }
+        };
+    }
+
+    renderForm() {
+        const titleElement = document.getElementById('scholarship-title');
+        const formContainer = document.getElementById('form-container');
+        
+        titleElement.textContent = this.schema.title || 'Scholarship Application';
+        
+        const formHtml = this.generateFormHtml();
+        formContainer.innerHTML = formHtml;
+        
+        // Load form data
+        this.loadFormData();
+        
+        // Set up form event listeners
+        this.setupFormListeners();
+    }
+
+    generateFormHtml() {
+        let html = `<form id="application-form" class="application-form">`;
+        
+        if (this.schema.properties) {
+            for (const [key, field] of Object.entries(this.schema.properties)) {
+                const isRequired = this.schema.required?.includes(key) || false;
+                html += this.generateFieldHtml(key, field, isRequired);
+            }
+        }
+        
+        html += `
+            <div class="security-section">
+                <div class="turnstile-container">
+                    <p><em>Note: Turnstile verification will be added in production</em></p>
+                </div>
+                <button type="submit" id="submit-btn" class="submit-btn">
+                    Submit Application
+                </button>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="organization_${roleId}">Organization Name</label>
-                    <input type="text" id="organization_${roleId}" name="organization_${roleId}">
-                </div>
-                <div class="form-group">
-                    <label for="role_title_${roleId}">Role/Position</label>
-                    <input type="text" id="role_title_${roleId}" name="role_title_${roleId}">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="start_date_${roleId}">Start Date</label>
-                    <input type="date" id="start_date_${roleId}" name="start_date_${roleId}">
-                </div>
-                <div class="form-group">
-                    <label for="end_date_${roleId}">End Date</label>
-                    <input type="date" id="end_date_${roleId}" name="end_date_${roleId}">
-                </div>
-            </div>
+        </form>`;
+        
+        return html;
+    }
+
+    generateFieldHtml(key, field, isRequired) {
+        const label = field.title || key;
+        const required = isRequired ? ' required' : '';
+        const requiredSpan = isRequired ? ' <span class="required">*</span>' : '';
+        
+        let fieldHtml = `
             <div class="form-group">
-                <label for="responsibilities_${roleId}">Responsibilities & Achievements</label>
-                <textarea id="responsibilities_${roleId}" name="responsibilities_${roleId}" rows="3" placeholder="Describe your key responsibilities and achievements in this role..."></textarea>
-            </div>
+                <label for="${key}">${label}${requiredSpan}</label>
         `;
         
-        return roleDiv;
+        if (field.enum) {
+            // Select dropdown
+            fieldHtml += `<select id="${key}" name="${key}"${required}>`;
+            fieldHtml += `<option value="">Select...</option>`;
+            field.enum.forEach(option => {
+                fieldHtml += `<option value="${option}">${option}</option>`;
+            });
+            fieldHtml += `</select>`;
+        } else if (field.type === 'string' && (field.minLength > 100 || this.uiSchema?.[key]?.['ui:widget'] === 'textarea')) {
+            // Textarea for long text
+            const rows = this.uiSchema?.[key]?.['ui:options']?.rows || 6;
+            fieldHtml += `<textarea id="${key}" name="${key}" rows="${rows}"${required}></textarea>`;
+        } else {
+            // Regular input
+            const inputType = field.format === 'email' ? 'email' : 
+                            field.type === 'number' ? 'number' : 'text';
+            const min = field.minimum !== undefined ? ` min="${field.minimum}"` : '';
+            const max = field.maximum !== undefined ? ` max="${field.maximum}"` : '';
+            const step = field.multipleOf !== undefined ? ` step="${field.multipleOf}"` : '';
+            const pattern = field.pattern ? ` pattern="${field.pattern}"` : '';
+            const placeholder = this.uiSchema?.[key]?.['ui:placeholder'] || '';
+            
+            fieldHtml += `<input type="${inputType}" id="${key}" name="${key}"${min}${max}${step}${pattern}${placeholder} placeholder="${placeholder}"${required}>`;
+        }
+        
+        if (field.description) {
+            fieldHtml += `<small class="field-description">${field.description}</small>`;
+        }
+        
+        if (this.uiSchema?.[key]?.['ui:help']) {
+            fieldHtml += `<small class="field-help">${this.uiSchema[key]['ui:help']}</small>`;
+        }
+        
+        fieldHtml += `</div>`;
+        return fieldHtml;
     }
 
-    window.removeLeadershipRole = function(roleId) {
-        const roleElement = document.querySelector(`[data-role-id="${roleId}"]`);
-        if (roleElement) {
-            roleElement.remove();
-            
-            // Check if there are no more leadership roles
-            const remainingRoles = document.querySelectorAll('.leadership-role');
-            if (remainingRoles.length === 0) {
-                leadershipRoleCount = 0;
-            }
-        }
-    };
-
-    // File upload handling
-    const transcriptInput = document.getElementById('transcript');
-    const transcriptPreview = document.getElementById('transcript-preview');
-
-    transcriptInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Check file size (5MB limit)
-            if (file.size > 5 * 1024 * 1024) {
-                showError(this, 'File size must be less than 5MB');
-                this.value = '';
-                transcriptPreview.style.display = 'none';
-                return;
-            }
-
-            // Check file type
-            if (file.type !== 'application/pdf') {
-                showError(this, 'Please upload a PDF file');
-                this.value = '';
-                transcriptPreview.style.display = 'none';
-                return;
-            }
-
-            // Show file preview
-            transcriptPreview.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-            transcriptPreview.style.display = 'block';
-            clearError(this);
-        } else {
-            transcriptPreview.style.display = 'none';
-        }
-    });
-
-    // Essay word count
-    const essayTextarea = document.getElementById('essay');
-    const wordCountSpan = document.getElementById('word-count');
-
-    essayTextarea.addEventListener('input', function() {
-        const wordCount = this.value.trim().split(/\s+/).filter(word => word.length > 0).length;
-        wordCountSpan.textContent = wordCount;
+    loadFormData() {
+        if (!this.formData) return;
         
-        const wordCountContainer = document.querySelector('.word-count');
-        wordCountContainer.classList.remove('warning', 'error');
-        
-        if (wordCount < 500) {
-            wordCountContainer.classList.add('warning');
-        } else if (wordCount > 1000) {
-            wordCountContainer.classList.add('error');
+        for (const [key, value] of Object.entries(this.formData)) {
+            const field = document.querySelector(`[name="${key}"]`);
+            if (field) {
+                field.value = value;
+            }
         }
-    });
+    }
 
-    // Form handling
-    const form = document.getElementById('applicationForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const messageDiv = document.getElementById('message');
-
-    if (form) {
-        form.addEventListener('submit', async function(e) {
+    setupFormListeners() {
+        const form = document.getElementById('application-form');
+        if (!form) return;
+        
+        // Auto-save to localStorage
+        form.addEventListener('input', (e) => {
+            this.saveFormData();
+        });
+        
+        // Form submission
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
-            // Validate form
-            if (!validateForm()) {
-                return;
-            }
-            
-            // Disable submit button and show loading state
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            messageDiv.textContent = '';
-            messageDiv.className = 'message';
-
-            try {
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-
-                // Add leadership roles data
-                const leadershipRoles = [];
-                document.querySelectorAll('.leadership-role').forEach(role => {
-                    const roleId = role.dataset.roleId;
-                    const organization = document.getElementById(`organization_${roleId}`).value;
-                    const roleTitle = document.getElementById(`role_title_${roleId}`).value;
-                    
-                    if (organization || roleTitle) {
-                        leadershipRoles.push({
-                            organization_name: organization,
-                            role_title: roleTitle,
-                            start_date: document.getElementById(`start_date_${roleId}`).value,
-                            end_date: document.getElementById(`end_date_${roleId}`).value,
-                            responsibilities: document.getElementById(`responsibilities_${roleId}`).value
-                        });
-                    }
-                });
-                
-                data.leadership_roles = leadershipRoles;
-
-                // For now, just simulate submission since we don't have the backend API yet
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                // Simulate successful submission
-                messageDiv.textContent = 'Application submitted successfully! We will review your application and contact you soon.';
-                messageDiv.className = 'message success';
-                form.reset();
-                
-                // Reset leadership roles to empty
-                leadershipContainer.innerHTML = '';
-                leadershipRoleCount = 0;
-                
-                // Reset file preview and word count
-                transcriptPreview.style.display = 'none';
-                wordCountSpan.textContent = '0';
-                document.querySelector('.word-count').classList.remove('warning', 'error');
-                
-                // Scroll to message
-                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            } catch (error) {
-                console.error('Submission error:', error);
-                messageDiv.textContent = 'Submission failed. Please try again.';
-                messageDiv.className = 'message error';
-            } finally {
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Application';
-            }
+            this.handleSubmit(e);
         });
     }
 
-    function validateForm() {
+    saveFormData() {
+        const form = document.getElementById('application-form');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        this.formData = data;
+        localStorage.setItem(this.storageKey, JSON.stringify(data));
+    }
+
+    async handleSubmit(e) {
+        if (this.isSubmitting) return;
+        
+        if (!this.validateForm()) {
+            return;
+        }
+        
+        this.isSubmitting = true;
+        const submitBtn = document.getElementById('submit-btn');
+        const originalText = submitBtn.textContent;
+        
+        try {
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            // For testing, simulate submission
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Clear saved data
+            localStorage.removeItem(this.storageKey);
+            
+            alert('Application submitted successfully!');
+            this.formData = {};
+            document.getElementById('application-form').reset();
+            
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Error submitting application. Please try again.');
+        } finally {
+            this.isSubmitting = false;
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    validateForm() {
+        const form = document.getElementById('application-form');
+        const formData = new FormData(form);
         let isValid = true;
         
-        // Validate required fields
-        const requiredFields = form.querySelectorAll('[required]');
-        requiredFields.forEach(field => {
-            if (field.type === 'file') {
-                if (!field.files || field.files.length === 0) {
-                    showError(field, 'Please upload your transcript');
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+        
+        // Check required fields
+        if (this.schema.required) {
+            for (const field of this.schema.required) {
+                const value = formData.get(field);
+                if (!value || value.trim() === '') {
+                    this.showFieldError(field, 'This field is required');
                     isValid = false;
-                } else {
-                    clearError(field);
                 }
-            } else if (!field.value.trim()) {
-                showError(field, 'This field is required');
-                isValid = false;
-            } else {
-                clearError(field);
             }
-        });
-
-        // Email validation
-        const emailField = document.getElementById('email');
-        if (emailField.value && !isValidEmail(emailField.value)) {
-            showError(emailField, 'Please enter a valid email address');
+        }
+        
+        // Validate email format
+        const email = formData.get('email');
+        if (email && !this.isValidEmail(email)) {
+            this.showFieldError('email', 'Please enter a valid email address');
             isValid = false;
         }
-
-        // GPA validation
-        const gpaField = document.getElementById('anticipated_gpa');
-        if (gpaField.value && (parseFloat(gpaField.value) < 0 || parseFloat(gpaField.value) > 4)) {
-            showError(gpaField, 'GPA must be between 0 and 4');
-            isValid = false;
+        
+        // Check minimum lengths
+        if (this.schema.properties) {
+            for (const [key, field] of Object.entries(this.schema.properties)) {
+                const value = formData.get(key);
+                if (value && field.minLength && value.length < field.minLength) {
+                    this.showFieldError(key, `Must be at least ${field.minLength} characters`);
+                    isValid = false;
+                }
+            }
         }
-
-        // Essay word count validation
-        const essayWordCount = essayTextarea.value.trim().split(/\s+/).filter(word => word.length > 0).length;
-        if (essayWordCount < 500) {
-            showError(essayTextarea, 'Essay must be at least 500 words');
-            isValid = false;
-        } else if (essayWordCount > 1000) {
-            showError(essayTextarea, 'Essay must not exceed 1000 words');
-            isValid = false;
-        }
-
-        // Leadership roles are optional - no validation needed
-
+        
         return isValid;
     }
 
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    function showError(field, message) {
-        clearError(field);
+    showFieldError(fieldName, message) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (!field) return;
+        
+        field.classList.add('error');
         
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
         errorDiv.textContent = message;
         
         field.parentNode.appendChild(errorDiv);
-        field.classList.add('error');
     }
 
-    function clearError(field) {
-        const existingError = field.parentNode.querySelector('.error-message');
-        if (existingError) {
-            existingError.remove();
-        }
-        field.classList.remove('error');
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 
-    // Real-time validation
-    const requiredFields = form.querySelectorAll('[required]');
-    requiredFields.forEach(field => {
-        field.addEventListener('blur', function() {
-            if (this.type === 'file') {
-                if (!this.files || this.files.length === 0) {
-                    showError(this, 'Please upload your transcript');
-                } else {
-                    clearError(this);
-                }
-            } else if (!this.value.trim()) {
-                showError(this, 'This field is required');
-            } else {
-                clearError(this);
-            }
-        });
-
-        field.addEventListener('input', function() {
-            if (this.value.trim()) {
-                clearError(this);
-            }
-        });
-    });
-
-    // Email field validation
-    const emailField = document.getElementById('email');
-    if (emailField) {
-        emailField.addEventListener('blur', function() {
-            if (this.value && !isValidEmail(this.value)) {
-                showError(this, 'Please enter a valid email address');
-            }
-        });
+    setupEventListeners() {
+        // Additional event listeners if needed
     }
+}
 
-    // GPA field validation
-    const gpaField = document.getElementById('anticipated_gpa');
-    if (gpaField) {
-        gpaField.addEventListener('blur', function() {
-            if (this.value && (parseFloat(this.value) < 0 || parseFloat(this.value) > 4)) {
-                showError(this, 'GPA must be between 0 and 4');
-            }
-        });
-    }
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new ScholarshipApplication();
 });

@@ -1,175 +1,349 @@
--- Seed data for WSU Fiji Scholarship Application System
+-- Seed data for WSU Fiji Scholarship Application System (Stateless Architecture)
 
--- Insert sample scholarships
-INSERT INTO public.scholarships (name, description, year, application_deadline, award_amount, max_recipients, is_active) VALUES
-('WSU Fiji Chapter Scholarship', 'Annual scholarship for active WSU Fiji chapter members demonstrating leadership and academic excellence', 2025, '2025-03-15 23:59:59+00', 1000.00, 3, true),
-('WSU Fiji Leadership Award', 'Recognition award for outstanding leadership within the fraternity and community', 2025, '2025-03-15 23:59:59+00', 500.00, 2, true),
-('WSU Fiji Academic Achievement', 'Scholarship for members with exceptional academic performance', 2025, '2025-03-15 23:59:59+00', 750.00, 2, true),
-('WSU Fiji Community Service Award', 'Award for members who demonstrate exceptional commitment to community service', 2024, '2024-03-15 23:59:59+00', 400.00, 1, false);
+-- Insert sample scholarships with JSON Schema form definitions
+INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VALUES
+('wsu-fiji-chapter-scholarship-2025', 'WSU Fiji Chapter Scholarship 2025', true, 
+'{
+  "title": "WSU Fiji Chapter Scholarship Application 2025",
+  "description": "Annual scholarship for active WSU Fiji chapter members demonstrating leadership and academic excellence",
+  "type": "object",
+  "required": ["fullName", "email", "phone", "highSchool", "gpa", "essay"],
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "title": "Full Name",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email Address",
+      "description": "Your WSU or personal email address"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number",
+      "pattern": "^\\d{3}-\\d{3}-\\d{4}$",
+      "description": "Format: 555-123-4567"
+    },
+    "highSchool": {
+      "type": "string",
+      "title": "High School Name",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "gpa": {
+      "type": "number",
+      "title": "Current GPA",
+      "minimum": 0.0,
+      "maximum": 4.0,
+      "multipleOf": 0.01,
+      "description": "Your current cumulative GPA on a 4.0 scale"
+    },
+    "leadershipExperience": {
+      "type": "array",
+      "title": "Leadership Experience",
+      "description": "List any leadership positions you have held",
+      "items": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "title": "Organization Name"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position/Role"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date (or current)"
+          },
+          "description": {
+            "type": "string",
+            "title": "Responsibilities & Achievements"
+          }
+        }
+      }
+    },
+    "communityService": {
+      "type": "string",
+      "title": "Community Service Involvement",
+      "description": "Describe your community service activities and hours volunteered",
+      "minLength": 50
+    },
+    "essay": {
+      "type": "string",
+      "title": "Personal Statement",
+      "description": "Why do you deserve this scholarship? How has your involvement with WSU Fiji shaped your college experience? (500-1000 words)",
+      "minLength": 500,
+      "maxLength": 2000
+    }
+  }
+}'::jsonb, 
+'{
+  "fullName": {
+    "ui:autofocus": true,
+    "ui:placeholder": "Enter your full legal name"
+  },
+  "email": {
+    "ui:placeholder": "your.email@wsu.edu"
+  },
+  "phone": {
+    "ui:placeholder": "555-123-4567"
+  },
+  "gpa": {
+    "ui:help": "Enter your GPA as a decimal (e.g., 3.75)"
+  },
+  "leadershipExperience": {
+    "ui:options": {
+      "orderable": false
+    },
+    "items": {
+      "description": {
+        "ui:widget": "textarea",
+        "ui:options": {
+          "rows": 3
+        }
+      }
+    }
+  },
+  "communityService": {
+    "ui:widget": "textarea",
+    "ui:options": {
+      "rows": 4
+    }
+  },
+  "essay": {
+    "ui:widget": "textarea",
+    "ui:options": {
+      "rows": 12
+    },
+    "ui:help": "Take your time to write a thoughtful response. This is the most important part of your application."
+  }
+}'::jsonb),
 
--- Insert sample reviewers
-INSERT INTO public.reviewers (name, email, role, is_active) VALUES
-('John Smith', 'john.smith@wsufiji.org', 'admin', true),
-('Sarah Johnson', 'sarah.johnson@wsufiji.org', 'committee_member', true),
-('Michael Davis', 'michael.davis@wsufiji.org', 'reviewer', true),
-('Emily Wilson', 'emily.wilson@wsufiji.org', 'reviewer', true),
-('Robert Brown', 'robert.brown@wsufiji.org', 'committee_member', true);
+('wsu-fiji-leadership-award-2025', 'WSU Fiji Leadership Award 2025', true,
+'{
+  "title": "WSU Fiji Leadership Award Application 2025",
+  "description": "Recognition award for outstanding leadership within the fraternity and community",
+  "type": "object",
+  "required": ["fullName", "email", "phone", "leadershipRoles", "leadershipEssay"],
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "title": "Full Name",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email Address"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number",
+      "pattern": "^\\d{3}-\\d{3}-\\d{4}$"
+    },
+    "leadershipRoles": {
+      "type": "array",
+      "title": "Leadership Positions",
+      "description": "List all leadership positions you have held (minimum 2 required)",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["organization", "position", "startDate"],
+        "properties": {
+          "organization": {
+            "type": "string",
+            "title": "Organization"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position/Role"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date (leave blank if current)"
+          },
+          "achievements": {
+            "type": "string",
+            "title": "Key Achievements",
+            "description": "What did you accomplish in this role?"
+          }
+        }
+      }
+    },
+    "leadershipEssay": {
+      "type": "string",
+      "title": "Leadership Philosophy Essay",
+      "description": "Describe your leadership philosophy and provide specific examples of how you have demonstrated leadership within WSU Fiji and the broader community. (750-1500 words)",
+      "minLength": 750,
+      "maxLength": 3000
+    }
+  }
+}'::jsonb,
+'{
+  "leadershipRoles": {
+    "items": {
+      "achievements": {
+        "ui:widget": "textarea",
+        "ui:options": {
+          "rows": 3
+        }
+      }
+    }
+  },
+  "leadershipEssay": {
+    "ui:widget": "textarea",
+    "ui:options": {
+      "rows": 15
+    }
+  }
+}'::jsonb),
 
--- Insert review categories for each scholarship
-INSERT INTO public.review_categories (scholarship_id, name, description, weight, max_score, display_order, is_active) 
-SELECT 
-  s.id,
-  rc.name,
-  rc.description,
-  rc.weight,
-  rc.max_score,
-  rc.display_order,
-  true
-FROM public.scholarships s
-CROSS JOIN (VALUES 
-  ('Academic Achievement', 'Overall academic performance and GPA', 1.0, 5, 1),
-  ('Leadership Experience', 'Leadership roles and responsibilities', 1.0, 5, 2),
-  ('Community Involvement', 'Community service and extracurricular activities', 1.0, 5, 3),
-  ('Essay Quality', 'Quality of written essay and communication skills', 1.0, 5, 4),
-  ('Financial Need', 'Demonstrated financial need (if applicable)', 0.5, 5, 5)
-) AS rc(name, description, weight, max_score, display_order)
-WHERE s.is_active = true;
+('wsu-fiji-academic-achievement-2025', 'WSU Fiji Academic Achievement Scholarship 2025', true,
+'{
+  "title": "WSU Fiji Academic Achievement Scholarship 2025",
+  "description": "Scholarship for members with exceptional academic performance",
+  "type": "object",
+  "required": ["fullName", "email", "phone", "currentGPA", "major", "academicHonors", "academicEssay"],
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email Address"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number"
+    },
+    "currentGPA": {
+      "type": "number",
+      "title": "Current Cumulative GPA",
+      "minimum": 3.0,
+      "maximum": 4.0,
+      "multipleOf": 0.01,
+      "description": "Minimum 3.0 GPA required"
+    },
+    "major": {
+      "type": "string",
+      "title": "Major/Field of Study",
+      "enum": ["Accounting", "Business Administration", "Computer Science", "Engineering", "Finance", "Marketing", "Other"],
+      "description": "Select your primary field of study"
+    },
+    "academicHonors": {
+      "type": "array",
+      "title": "Academic Honors and Awards",
+      "description": "List any academic honors, dean''s list achievements, or awards",
+      "items": {
+        "type": "object",
+        "properties": {
+          "honor": {
+            "type": "string",
+            "title": "Honor/Award Name"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date Received"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        }
+      }
+    },
+    "academicEssay": {
+      "type": "string",
+      "title": "Academic Goals Essay",
+      "description": "Describe your academic achievements and future career goals. How will this scholarship help you achieve your academic objectives? (600-1200 words)",
+      "minLength": 600,
+      "maxLength": 2400
+    }
+  }
+}'::jsonb,
+'{
+  "currentGPA": {
+    "ui:help": "Applicants must have a minimum 3.0 GPA to be eligible"
+  },
+  "academicHonors": {
+    "items": {
+      "description": {
+        "ui:widget": "textarea",
+        "ui:options": {
+          "rows": 2
+        }
+      }
+    }
+  },
+  "academicEssay": {
+    "ui:widget": "textarea",
+    "ui:options": {
+      "rows": 12
+    }
+  }
+}'::jsonb),
 
--- Insert sample applicants
-INSERT INTO public.applicants (full_name, email, phone, gender, high_school_name, anticipated_gpa) VALUES
-('James Anderson', 'james.anderson@wsu.edu', '509-555-0101', 'Male', 'Pullman High School', 3.8),
-('Maria Garcia', 'maria.garcia@wsu.edu', '509-555-0102', 'Female', 'Moscow High School', 3.9),
-('David Chen', 'david.chen@wsu.edu', '509-555-0103', 'Male', 'Seattle Prep', 3.7),
-('Sophie Martin', 'sophie.martin@wsu.edu', '509-555-0104', 'Female', 'Gonzaga Prep', 4.0),
-('Tyler Johnson', 'tyler.johnson@wsu.edu', '509-555-0105', 'Male', 'North Central High School', 3.6);
+('test-scholarship-simple', 'Simple Test Scholarship', true,
+'{
+  "title": "Simple Test Application",
+  "type": "object",
+  "required": ["fullName", "email", "essay"],
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email Address"
+    },
+    "essay": {
+      "type": "string",
+      "title": "Why do you deserve this scholarship?",
+      "minLength": 100
+    }
+  }
+}'::jsonb,
+'{
+  "essay": {
+    "ui:widget": "textarea",
+    "ui:options": {
+      "rows": 6
+    }
+  }
+}'::jsonb);
 
--- Create sample applications for active scholarships
-INSERT INTO public.applications (applicant_id, scholarship_id, status, submitted_at)
-SELECT 
-  a.id as applicant_id,
-  s.id as scholarship_id,
-  'submitted' as status,
-  now() - interval '1 day' * floor(random() * 30) as submitted_at
-FROM public.applicants a
-CROSS JOIN public.scholarships s
-WHERE s.is_active = true
-  AND random() > 0.3; -- Not all applicants apply to all scholarships
+-- Insert some sample applications to test the system
+INSERT INTO public.applications (scholarship_id, email, submission_data) VALUES
+((SELECT id FROM public.scholarships WHERE slug = 'test-scholarship-simple'), 
+ 'test.user@example.com', 
+ '{"fullName": "Test User", "email": "test.user@example.com", "essay": "I believe I deserve this scholarship because I am committed to my education and have demonstrated strong academic performance throughout my college career. I have maintained a 3.8 GPA while working part-time to support my studies and participating in various community service activities."}'::jsonb),
 
--- Insert sample essays for applications
-INSERT INTO public.essays (application_id, content, word_count)
-SELECT 
-  app.id,
-  CASE 
-    WHEN random() < 0.2 THEN 'As a dedicated member of the WSU Fiji chapter, I have demonstrated strong leadership skills through my role as treasurer. I have maintained a 3.8 GPA while actively participating in community service projects and fraternity events. My academic achievements reflect my commitment to excellence both in and out of the classroom.'
-    WHEN random() < 0.4 THEN 'My experience as WSU Fiji chapter president has taught me invaluable lessons in leadership and teamwork. I have organized multiple philanthropic events that raised over $5000 for local charities. My academic performance has remained strong with a 3.9 GPA, and I am passionate about continuing my education while serving others.'
-    WHEN random() < 0.6 THEN 'Being part of WSU Fiji has shaped me into a well-rounded individual. I have served as community service chair, coordinating volunteer opportunities for our members. With a 3.7 GPA and extensive involvement in campus organizations, I believe I exemplify the values of scholarship, leadership, and service that our fraternity represents.'
-    WHEN random() < 0.8 THEN 'My journey with WSU Fiji has been transformative. As academic chair, I have helped our chapter achieve its highest collective GPA in five years. I maintain a 4.0 GPA while working part-time and participating in various leadership roles. This scholarship would enable me to continue my academic pursuits while contributing to our fraternity''s mission.'
-    ELSE 'Leadership and service have been the cornerstones of my college experience. Through my involvement with WSU Fiji, I have developed strong organizational skills and a deep commitment to helping others. With a 3.6 GPA and extensive experience in coordinating fraternity events, I am confident in my ability to represent our values and make a positive impact on campus.'
-  END,
-  CASE 
-    WHEN random() < 0.2 THEN 85
-    WHEN random() < 0.4 THEN 92
-    WHEN random() < 0.6 THEN 88
-    WHEN random() < 0.8 THEN 95
-    ELSE 82
-  END
-FROM public.applications app
-WHERE app.status = 'submitted'
-  AND random() > 0.1; -- Most applications have essays
+((SELECT id FROM public.scholarships WHERE slug = 'wsu-fiji-chapter-scholarship-2025'), 
+ 'james.anderson@wsu.edu', 
+ '{"fullName": "James Anderson", "email": "james.anderson@wsu.edu", "phone": "509-555-0101", "highSchool": "Pullman High School", "gpa": 3.8, "leadershipExperience": [{"organization": "WSU Fiji", "position": "Treasurer", "startDate": "2023-08-15", "endDate": "2024-12-15", "description": "Managed chapter finances and organized fundraising events"}], "communityService": "Volunteered at local food bank for 50 hours, organized campus cleanup events", "essay": "As a dedicated member of the WSU Fiji chapter, I have demonstrated strong leadership skills through my role as treasurer. I have maintained a 3.8 GPA while actively participating in community service projects and fraternity events. My academic achievements reflect my commitment to excellence both in and out of the classroom."}'::jsonb),
 
--- Insert sample leadership roles
-INSERT INTO public.leadership_roles (application_id, organization_name, role_title, start_date, end_date, responsibilities)
-SELECT 
-  app.id,
-  CASE 
-    WHEN random() < 0.25 THEN 'WSU Fiji Chapter'
-    WHEN random() < 0.5 THEN 'Student Government'
-    WHEN random() < 0.75 THEN 'Community Service Club'
-    ELSE 'Honors Society'
-  END,
-  CASE 
-    WHEN random() < 0.2 THEN 'President'
-    WHEN random() < 0.4 THEN 'Treasurer'
-    WHEN random() < 0.6 THEN 'Secretary'
-    WHEN random() < 0.8 THEN 'Community Service Chair'
-    ELSE 'Academic Chair'
-  END,
-  now() - interval '1 year' - interval '1 month' * floor(random() * 6),
-  now() - interval '1 month' * floor(random() * 3),
-  CASE 
-    WHEN random() < 0.25 THEN 'Led chapter meetings, coordinated events, managed budget, and represented the organization at university functions.'
-    WHEN random() < 0.5 THEN 'Managed financial records, prepared budgets, collected dues, and oversaw fundraising activities.'
-    WHEN random() < 0.75 THEN 'Organized community service projects, coordinated volunteer schedules, and maintained relationships with local charities.'
-    ELSE 'Maintained academic records, organized study sessions, and promoted academic excellence among members.'
-  END
-FROM public.applications app
-WHERE app.status = 'submitted'
-  AND random() > 0.3; -- Most applicants have leadership experience
-
--- Insert sample reviews for some applications
-INSERT INTO public.reviews (application_id, reviewer_id, status, overall_score, recommendation, general_comments, assigned_at, completed_at)
-SELECT 
-  app.id,
-  rev.id,
-  'completed' as status,
-  (random() * 2 + 3)::numeric(2,1) as overall_score, -- Score between 3.0 and 5.0
-  CASE 
-    WHEN random() < 0.2 THEN 'strong_accept'
-    WHEN random() < 0.4 THEN 'accept'
-    WHEN random() < 0.6 THEN 'neutral'
-    WHEN random() < 0.8 THEN 'reject'
-    ELSE 'strong_reject'
-  END as recommendation,
-  CASE 
-    WHEN random() < 0.25 THEN 'Strong candidate with excellent academic performance and leadership experience.'
-    WHEN random() < 0.5 THEN 'Good candidate with solid academic record and community involvement.'
-    WHEN random() < 0.75 THEN 'Average candidate with some leadership experience but room for improvement.'
-    ELSE 'Candidate needs more development in leadership and academic areas.'
-  END as general_comments,
-  now() - interval '2 weeks' - interval '1 day' * floor(random() * 7) as assigned_at,
-  now() - interval '1 week' - interval '1 day' * floor(random() * 5) as completed_at
-FROM public.applications app
-CROSS JOIN public.reviewers rev
-WHERE app.status = 'submitted'
-  AND rev.is_active = true
-  AND random() > 0.6; -- Some applications have been reviewed
-
--- Insert sample category ratings for completed reviews
-INSERT INTO public.category_ratings (review_id, category_id, score, comments)
-SELECT 
-  r.id as review_id,
-  rc.id as category_id,
-  score_value,
-  CASE 
-    WHEN score_value >= 5 THEN 'Exceptional performance in this area.'
-    WHEN score_value >= 4 THEN 'Strong performance with minor areas for improvement.'
-    ELSE 'Adequate performance with room for growth.'
-  END as comments
-FROM public.reviews r
-JOIN public.review_categories rc ON rc.scholarship_id = (
-  SELECT scholarship_id FROM public.applications WHERE id = r.application_id
-),
-LATERAL (SELECT floor(random() * 3 + 3) as score_value) AS scores
-WHERE r.status = 'completed'
-  AND rc.is_active = true;
-
--- Update some application statuses based on reviews
-UPDATE public.applications 
-SET status = CASE 
-  WHEN EXISTS (
-    SELECT 1 FROM public.reviews r 
-    WHERE r.application_id = applications.id 
-    AND r.recommendation IN ('strong_accept', 'accept')
-    AND r.status = 'completed'
-  ) THEN 'accepted'
-  WHEN EXISTS (
-    SELECT 1 FROM public.reviews r 
-    WHERE r.application_id = applications.id 
-    AND r.recommendation IN ('strong_reject', 'reject')
-    AND r.status = 'completed'
-  ) THEN 'rejected'
-  ELSE 'under_review'
-END,
-reviewed_at = now() - interval '3 days'
-WHERE status = 'submitted'
-  AND EXISTS (SELECT 1 FROM public.reviews r WHERE r.application_id = applications.id AND r.status = 'completed');
+((SELECT id FROM public.scholarships WHERE slug = 'wsu-fiji-leadership-award-2025'), 
+ 'sarah.johnson@wsu.edu', 
+ '{"fullName": "Sarah Johnson", "email": "sarah.johnson@wsu.edu", "phone": "509-555-0102", "leadershipRoles": [{"organization": "WSU Fiji", "position": "President", "startDate": "2023-08-15", "achievements": "Led chapter to win Chapter of the Year award, increased membership by 25%"}, {"organization": "Student Government", "position": "Senator", "startDate": "2022-09-01", "endDate": "2023-05-15", "achievements": "Authored legislation for improved campus parking"}], "leadershipEssay": "My leadership philosophy is centered on servant leadership and leading by example. Through my role as WSU Fiji chapter president, I learned that true leadership is about empowering others to reach their full potential rather than seeking personal recognition."}'::jsonb);

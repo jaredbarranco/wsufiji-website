@@ -1,6 +1,5 @@
 -- Performance indexes
 create index idx_applications_applicant_id on applications(applicant_id);
-create index idx_applications_scholarship_id on applications(scholarship_id);
 create index idx_applications_status on applications(status);
 create index idx_reviews_application_id on reviews(application_id);
 create index idx_reviews_reviewer_id on reviews(reviewer_id);

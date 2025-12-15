@@ -1,5 +1,5 @@
 -- First, rename the existing applications table to applications_old
-alter table if exists public.applications rename to applications_old;
+alter table if exists public.applications rename to applications_old1;
 
 -- Create the new applications table structure
 create table if not exists public.applications (

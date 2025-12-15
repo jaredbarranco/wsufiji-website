@@ -4,162 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WSU Fiji - Scholarship Application</title>
-    <link rel="stylesheet" href="src/style.css">
+    <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <h1>WSU Fiji</h1>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#home" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#apply" class="nav-link">Apply</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <main>
-        <section id="home" class="hero-section">
-            <div class="hero-content">
-                <h1>WSU Fiji Scholarships</h1>
-                <p>Empowering students through educational opportunities</p>
-                <a href="#apply" class="cta-button">Apply Now</a>
-            </div>
-        </section>
-
-        <section id="apply" class="application-section">
-            <div class="application-container">
-                <h2>Scholarship Application</h2>
-                <p class="application-intro">Complete the form below to apply for WSU Fiji scholarships.</p>
-                
-                <form id="applicationForm" class="application-form">
-                    <div class="form-section">
-                        <h3>Personal Information</h3>
-                        <div class="form-group">
-                            <label for="full_name">Full Name *</label>
-                            <input type="text" id="full_name" name="full_name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="gender">Gender</label>
-                            <select id="gender" name="gender">
-                                <option value="">Select...</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                                <option value="prefer_not_to_say">Prefer not to say</option>
-                            </select>
-                        </div>
+    <div id="root">
+        <div class="container">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-logo">
+                        <h1>WSU Fiji</h1>
                     </div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">Apply</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-                    <div class="form-section">
-                        <h3>Academic Information</h3>
-                        <div class="form-group">
-                            <label for="high_school_name">High School Name *</label>
-                            <input type="text" id="high_school_name" name="high_school_name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="anticipated_gpa">Anticipated GPA</label>
-                            <input type="number" id="anticipated_gpa" name="anticipated_gpa" min="0" max="4" step="0.01">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="transcript">Academic Transcript *</label>
-                            <input type="file" id="transcript" name="transcript" accept=".pdf" required>
-                            <small>Accepted format: PDF only (Max 5MB)</small>
-                            <div id="transcript-preview" class="file-preview"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Leadership Experience</h3>
-                        <div id="leadership-roles-container"></div>
-                        <button type="button" id="add-leadership-role" class="add-btn">+ Add Leadership Role</button>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Greek Community Interest</h3>
-                        <div class="form-group">
-                            <label>Have you heard about the Greek Community at Washington State University?</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="heard_about_greek" value="yes" required>
-                                    <span>Yes</span>
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="heard_about_greek" value="no" required>
-                                    <span>No</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Are you interested in hearing more about the Greek Community at Washington State?</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="interested_in_greek" value="yes" required>
-                                    <span>Yes</span>
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="interested_in_greek" value="no" required>
-                                    <span>No</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Personal Statement</h3>
-                        <div class="form-group">
-                            <label for="essay">Personal Statement *</label>
-                            <div class="essay-instructions">
-                                <p>Please write a personal statement (500-1000 words) that addresses:</p>
-                                <ul>
-                                    <li>Your academic and career goals</li>
-                                    <li>Why you believe you deserve this scholarship</li>
-                                    <li>How this scholarship will help you achieve your goals</li>
-                                    <li>Any challenges you've overcome and lessons learned</li>
-                                </ul>
-                            </div>
-                            <textarea id="essay" name="essay" rows="8" required placeholder="Write your personal statement here..."></textarea>
-                            <div class="word-count">
-                                <span id="word-count">0</span> words (500-1000 recommended)
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" id="submitBtn" class="submit-btn">Submit Application</button>
+            <main class="application-main">
+                <div class="application-container">
+                    <div class="application-header">
+                        <h1 id="scholarship-title">Loading Application...</h1>
+                        <p class="application-intro">
+                            Please wait while we prepare your scholarship application.
+                        </p>
                     </div>
                     
-                    <div id="message" class="message"></div>
-                </form>
-            </div>
-        </section>
-    </main>
+                    <div id="form-container" class="loading">
+                        <p>Loading form...</p>
+                    </div>
+                </div>
+            </main>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
+            <footer class="footer">
+                <div class="footer-content">
+                    <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
+                </div>
+            </footer>
         </div>
-    </footer>
+    </div>
 
-    <script src="src/app.js"></script>
+    <script type="module" src="/src/app.js"></script>
 </body>
 </html>
