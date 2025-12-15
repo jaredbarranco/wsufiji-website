@@ -7,7 +7,7 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
   "title": "WSU Fiji Chapter Scholarship Application 2025",
   "description": "Annual scholarship for active WSU Fiji chapter members demonstrating leadership and academic excellence",
   "type": "object",
-  "required": ["fullName", "email", "phone", "highSchool", "gpa", "essay"],
+  "required": ["fullName", "email", "phone", "highSchool", "gpa", "transcript", "essay"],
   "properties": {
     "fullName": {
       "type": "string",
@@ -79,6 +79,12 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
       "description": "Describe your community service activities and hours volunteered",
       "minLength": 50
     },
+    "transcript": {
+      "type": "string",
+      "title": "Academic Transcript",
+      "description": "Upload your current academic transcript (PDF format preferred)",
+      "default": null
+    },
     "essay": {
       "type": "string",
       "title": "Personal Statement",
@@ -120,6 +126,10 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
     "ui:options": {
       "rows": 4
     }
+  },
+  "transcript": {
+    "ui:widget": "file",
+    "ui:help": "Please upload your most recent academic transcript. PDF format is preferred."
   },
   "essay": {
     "ui:widget": "textarea",

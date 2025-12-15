@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
+import { CustomFileWidget } from './CustomFileWidget';
 
 // Custom Array Field Template with better buttons
 const CustomArrayFieldTemplate = (props) => {
@@ -228,7 +229,37 @@ const ScholarshipFormPage = () => {
             )}
           </div>
 
-          <Form
+          {/* Show Turnstile verification until completed, then show form */}
+          {!turnstileToken ? (
+            <div className="security-section" style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '300px',
+              padding: '40px',
+              border: '2px solid #ddd', 
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9'
+            }}>
+              <h3 style={{ marginBottom: '15px', textAlign: 'center' }}>
+                Security Verification Required
+              </h3>
+              <p style={{ marginBottom: '25px', textAlign: 'center', color: '#666' }}>
+                Please complete the security check below to access the application form.
+              </p>
+              <div className="turnstile-container">
+                <Turnstile
+                  sitekey={TURNSTILE_SITE_KEY}
+                  onVerify={(token) => {
+                    console.log('Turnstile verification success, token length:', token ? token.length : 'none');
+                    setTurnstileToken(token);
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <Form
             schema={schema}
             uiSchema={uiSchema}
             formData={formData}
@@ -239,24 +270,24 @@ const ScholarshipFormPage = () => {
             templates={{
               ArrayFieldTemplate: CustomArrayFieldTemplate
             }}
+            widgets={{
+              file: (props) => {
+                console.log('Widget registration - turnstileToken:', turnstileToken ? turnstileToken.substring(0, 20) + '...' : 'missing');
+                return <CustomFileWidget {...props} turnstileToken={turnstileToken} />;
+              }
+            }}
           >
-            {/* Custom Submit Button & Turnstile Area */}
-            <div className="security-section">
-              <div className="turnstile-container">
-                <Turnstile
-                  sitekey={TURNSTILE_SITE_KEY}
-                  onVerify={(token) => setTurnstileToken(token)}
-                />
-              </div>
+            <div className="submit-section">
               <button
                 type="submit"
-                disabled={isSubmitting || !turnstileToken}
+                disabled={isSubmitting}
                 className={`submit-btn ${isSubmitting ? 'loading' : ''}`}
               >
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </button>
             </div>
           </Form>
+          )}
         </div>
       </main>
 
