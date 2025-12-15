@@ -92,6 +92,11 @@ body {
     background: #34495e;
 }
 
+/* Application Main */
+.application-main {
+    padding-top: 100px;
+}
+
 /* Application Section */
 .application-section {
     padding: 4rem 2rem;
@@ -102,6 +107,19 @@ body {
 .application-container {
     max-width: 800px;
     margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.application-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.application-header h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
 }
 
 .application-container h2 {
