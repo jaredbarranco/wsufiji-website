@@ -169,7 +169,7 @@ export default {
         
         const { data, error } = await supabase
           .from('scholarships')
-          .select('id, title, slug, active')
+          .select('id, title, slug, active, deadline')
           .eq('active', true)
           .order('title');
 
