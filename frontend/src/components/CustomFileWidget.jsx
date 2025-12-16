@@ -6,6 +6,7 @@ export const CustomFileWidget = ({ value, onChange, options }) => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [key, setKey] = useState(0); // Key to force re-render of file input
 
   const { containerRef, getTurnstileToken, isReady } = useInvisibleTurnstile();
 
@@ -130,6 +131,7 @@ export const CustomFileWidget = ({ value, onChange, options }) => {
     onChange(null);
     setError(null);
     setUploadSuccess(false);
+    setKey(prev => prev + 1); // Force re-render of file input
   };
 
   // Always return the upload widget, showing preview if file exists
@@ -187,6 +189,7 @@ export const CustomFileWidget = ({ value, onChange, options }) => {
 
       <div>
         <input
+          key={`file-input-${key}`} // Force re-render when key changes
           type="file"
           onChange={handleFileChange}
           disabled={uploading}

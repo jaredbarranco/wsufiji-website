@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
@@ -49,6 +49,7 @@ const CustomArrayFieldTemplate = (props) => {
 
 const ScholarshipFormPage = () => {
   const { scholarshipSlug } = useParams();
+  const navigate = useNavigate();
   const [schema, setSchema] = useState(null);
   const [uiSchema, setUiSchema] = useState(null);
   const [formData, setFormData] = useState(null);
@@ -56,6 +57,7 @@ const ScholarshipFormPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formKey, setFormKey] = useState(0); // Key to force re-render of form
 
   // Create a unique key for LocalStorage so different scholarships don't overwrite each other
   const STORAGE_KEY = `draft_${scholarshipSlug}`;
@@ -146,10 +148,11 @@ const ScholarshipFormPage = () => {
 
       const result = await response.json();
 
-      // Success! Clear the draft.
+      // Success! Clear the draft and redirect.
       localStorage.removeItem(STORAGE_KEY);
-      alert("Application Submitted Successfully!");
       setFormData({}); // Reset form
+      setFormKey(prev => prev + 1); // Force re-render to clear file inputs
+      navigate('/success');
 
     } catch (err) {
       console.error('Submission error:', err);
@@ -232,6 +235,7 @@ const ScholarshipFormPage = () => {
           </div>
 
             <Form
+            key={`form-${formKey}`} // Force re-render when key changes
             schema={schema}
             uiSchema={uiSchema}
             formData={formData}
