@@ -245,9 +245,7 @@ const ScholarshipFormPage = () => {
               ArrayFieldTemplate: CustomArrayFieldTemplate
             }}
             widgets={{
-              file: (props) => {
-                return <CustomFileWidget {...props} turnstileToken={turnstileToken} />;
-              }
+              file: CustomFileWidget
             }}
           >
             <div className="security-section" style={{ 

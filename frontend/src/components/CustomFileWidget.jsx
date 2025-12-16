@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
+import { useInvisibleTurnstile } from '../hooks/useInvisibleTurnstile';
 
-export const CustomFileWidget = ({ value, onChange, options, turnstileToken }) => {
+export const CustomFileWidget = ({ value, onChange, options }) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // Debug: Check if turnstileToken is available
-  console.log('CustomFileWidget received props:', {
-    value,
-    turnstileToken: turnstileToken ? turnstileToken.substring(0, 20) + '...' : 'missing'
-  });
+  const { containerRef, getTurnstileToken, isReady } = useInvisibleTurnstile();
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
+    console.log('=== FILE UPLOAD DEBUG START ===');
+    console.log('File selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
 
     setError(null);
     setUploading(true);
@@ -23,17 +28,23 @@ export const CustomFileWidget = ({ value, onChange, options, turnstileToken }) =
     try {
       const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
       console.log('API_BASE:', API_BASE);
+      console.log('Turnstile isReady:', isReady);
+      console.log('Widget container exists:', !!containerRef.current);
 
-      // 1. Use Turnstile Token from parent
+      // 1. Get Turnstile token from invisible widget
+      console.log('Getting Turnstile token for file upload...');
+      const turnstileToken = await getTurnstileToken();
+
       if (!turnstileToken) {
-        console.error('No turnstileToken available in CustomFileWidget');
-        throw new Error('Please complete the security verification before uploading files.');
+        console.error('Turnstile verification failed - no token returned');
+        throw new Error('Security verification failed. Please try again.');
       }
-      console.log('Turnstile token available, length:', turnstileToken ? turnstileToken.length : 'undefined');
+      console.log('Turnstile token received, length:', turnstileToken.length);
+      console.log('Token preview:', turnstileToken.substring(0, 20) + '...');
 
       // 2. Request Signed URL
       const requestUrl = `${API_BASE}/api/sign-upload`;
-      console.log('Requesting signed URL from:', requestUrl);
+      console.log('Step 1: Requesting signed URL from:', requestUrl);
       console.log('Request payload:', {
         filename: file.name,
         fileType: file.type,
@@ -41,6 +52,7 @@ export const CustomFileWidget = ({ value, onChange, options, turnstileToken }) =
         token: turnstileToken ? turnstileToken.substring(0, 20) + '...' : 'missing'
       });
 
+      console.log('About to call fetch for signed URL...');
       const signRes = await fetch(requestUrl, {
         method: 'POST',
         headers: {
@@ -123,6 +135,8 @@ export const CustomFileWidget = ({ value, onChange, options, turnstileToken }) =
   // Always return the upload widget, showing preview if file exists
   return (
     <div>
+      {/* Invisible Turnstile container */}
+      <div ref={containerRef} style={{ display: 'none' }} />
       {value && (
         <div className="file-preview" style={{
           padding: '10px',
@@ -216,54 +230,6 @@ export const CustomFileWidget = ({ value, onChange, options, turnstileToken }) =
           </div>
         )}
       </div>
-    </div>
-  );
-
-  return (
-    <div>
-      <input
-        type="file"
-        onChange={handleFileChange}
-        disabled={uploading}
-        accept=".pdf,.docx,.jpg,.jpeg,.png"
-        style={{
-          border: error ? '1px solid #dc3545' : '1px solid #ddd',
-          padding: '8px',
-          borderRadius: '4px',
-          width: '100%'
-        }}
-      />
-      {uploading && (
-        <div style={{ marginTop: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <progress
-              value={progress}
-              max="100"
-              style={{ flex: 1 }}
-            />
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <small style={{ color: '#666' }}>Uploading file...</small>
-        </div>
-      )}
-      {error && (
-        <div style={{
-          color: '#dc3545',
-          fontSize: '14px',
-          marginTop: '4px'
-        }}>
-          {error}
-        </div>
-      )}
-      {!uploading && !error && (
-        <div style={{
-          fontSize: '12px',
-          color: '#666',
-          marginTop: '4px'
-        }}>
-          Accepted formats: PDF, DOCX, JPG, PNG (Max: 10MB)
-        </div>
-      )}
     </div>
   );
 };
