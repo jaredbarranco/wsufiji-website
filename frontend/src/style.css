@@ -104,6 +104,18 @@ body {
     min-height: 100vh;
 }
 
+/* Force all validation errors to be red */
+.application-form .errors,
+.application-form .errors *,
+.application-form .field .errors,
+.application-form .field .errors *,
+.application-form ul[role="alert"],
+.application-form ul[role="alert"] *,
+.application-form div[role="alert"],
+.application-form div[role="alert"] * {
+    color: #dc3545 !important;
+}
+
 .application-container {
     max-width: 800px;
     margin: 0 auto;
@@ -339,6 +351,13 @@ body {
 .form-group select.error,
 .form-group textarea.error {
     border-color: #dc3545;
+}
+
+.application-form .field input.error,
+.application-form .field select.error,
+.application-form .field textarea.error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
 }
 
 .error-message {
@@ -612,6 +631,61 @@ body {
 
 .application-form .field {
     margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.application-form .field label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    order: 0;
+}
+
+.application-form .field .errors {
+    color: #dc3545 !important;
+    font-size: 0.875rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.5rem !important;
+    list-style: none !important;
+    font-weight: 600 !important;
+    order: 1;
+    display: block !important;
+    padding: 0.25rem 0 !important;
+}
+
+/* Style individual error list items */
+.application-form .field .errors li {
+    color: #dc3545 !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Additional selectors for RJSF errors */
+.application-form .errors {
+    color: #dc3545 !important;
+}
+
+.application-form .errors li {
+    color: #dc3545 !important;
+}
+
+/* Target any error text within form fields */
+.application-form fieldset .errors,
+.application-form fieldset .errors li,
+.application-form .field .errors,
+.application-form .field .errors li,
+.application-form div[role="alert"],
+.application-form .error-detail {
+    color: #dc3545 !important;
+}
+
+.application-form .field input,
+.application-form .field select,
+.application-form .field textarea {
+    order: 2;
 }
 
 .application-form .field label {
@@ -630,6 +704,7 @@ body {
     border-radius: 5px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
+    order: 2;
 }
 
 .application-form .field input:focus,
@@ -640,12 +715,14 @@ body {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.application-form .field .errors {
-    color: #e74c3c;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-    list-style: none;
+.application-form .field input.error:focus,
+.application-form .field select.error:focus,
+.application-form .field textarea.error:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
 }
+
+/* Remove duplicate - handled above */
 
 /* Loading state */
 .loading {

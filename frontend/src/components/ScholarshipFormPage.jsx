@@ -5,6 +5,8 @@ import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
 import { CustomFileWidget } from './CustomFileWidget';
 
+
+
 // Custom Array Field Template with better buttons
 const CustomArrayFieldTemplate = (props) => {
   const { items, canAdd, onAddClick } = props;
@@ -119,7 +121,7 @@ const ScholarshipFormPage = () => {
   // Submit Handler
   const handleSubmit = async ({ formData }) => {
     if (!turnstileToken) {
-      alert("Please complete the anti-spam check.");
+      alert("Please complete the security verification.");
       return;
     }
 
@@ -133,7 +135,7 @@ const ScholarshipFormPage = () => {
         body: JSON.stringify({
           slug: scholarshipSlug,
           submission: formData,
-          token: turnstileToken // Send Captcha to backend
+          token: turnstileToken
         })
       });
 
@@ -229,24 +231,38 @@ const ScholarshipFormPage = () => {
             )}
           </div>
 
-          {/* Show Turnstile verification until completed, then show form */}
-          {!turnstileToken ? (
+            <Form
+            schema={schema}
+            uiSchema={uiSchema}
+            formData={formData}
+            validator={validator}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            liveValidate={false}
+            showErrorList={false}
+            className="application-form"
+            templates={{
+              ArrayFieldTemplate: CustomArrayFieldTemplate
+            }}
+            widgets={{
+              file: (props) => {
+                return <CustomFileWidget {...props} turnstileToken={turnstileToken} />;
+              }
+            }}
+          >
             <div className="security-section" style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '300px',
-              padding: '40px',
-              border: '2px solid #ddd', 
+              margin: '30px 0',
+              padding: '20px',
+              border: '1px solid #ddd', 
               borderRadius: '8px',
-              backgroundColor: '#f9f9f9'
+              backgroundColor: '#f9f9f9',
+              textAlign: 'center'
             }}>
-              <h3 style={{ marginBottom: '15px', textAlign: 'center' }}>
-                Security Verification Required
+              <h3 style={{ marginBottom: '15px' }}>
+                Security Verification
               </h3>
-              <p style={{ marginBottom: '25px', textAlign: 'center', color: '#666' }}>
-                Please complete the security check below to access the application form.
+              <p style={{ marginBottom: '20px', color: '#666' }}>
+                Please complete the security check below before submitting your application.
               </p>
               <div className="turnstile-container">
                 <Turnstile
@@ -258,36 +274,31 @@ const ScholarshipFormPage = () => {
                 />
               </div>
             </div>
-          ) : (
-            <Form
-            schema={schema}
-            uiSchema={uiSchema}
-            formData={formData}
-            validator={validator}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            className="application-form"
-            templates={{
-              ArrayFieldTemplate: CustomArrayFieldTemplate
-            }}
-            widgets={{
-              file: (props) => {
-                console.log('Widget registration - turnstileToken:', turnstileToken ? turnstileToken.substring(0, 20) + '...' : 'missing');
-                return <CustomFileWidget {...props} turnstileToken={turnstileToken} />;
-              }
-            }}
-          >
+            
             <div className="submit-section">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !turnstileToken}
                 className={`submit-btn ${isSubmitting ? 'loading' : ''}`}
+                style={{ 
+                  opacity: (!turnstileToken || isSubmitting) ? 0.6 : 1,
+                  cursor: (!turnstileToken || isSubmitting) ? 'not-allowed' : 'pointer'
+                }}
               >
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </button>
+              {!turnstileToken && (
+                <p style={{ 
+                  marginTop: '10px', 
+                  fontSize: '14px', 
+                  color: '#666',
+                  textAlign: 'center'
+                }}>
+                  Please complete the security verification above before submitting.
+                </p>
+              )}
             </div>
           </Form>
-          )}
         </div>
       </main>
 
