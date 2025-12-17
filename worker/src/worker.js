@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    
+
     // Debug logging
     console.log('Request received:', {
       method: request.method,
@@ -27,10 +27,10 @@ export default {
     // Publicly accessible, read-only
     if (request.method === 'GET' && url.pathname.startsWith('/schema/')) {
       const slug = url.pathname.split('/').pop();
-      
+
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data, error } = await supabase
           .from('scholarships')
           .select('form_schema, ui_schema, id, title, description, verbose_description')
@@ -40,22 +40,22 @@ export default {
 
         if (error || !data) {
           console.error('Schema fetch error:', error);
-          return new Response('Scholarship not found', { 
+          return new Response('Scholarship not found', {
             status: 404,
             headers: corsHeaders
           });
         }
 
-        return new Response(JSON.stringify(data), { 
+        return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         });
       } catch (error) {
         console.error('Request error:', error);
-        return new Response('Internal server error', { 
+        return new Response('Internal server error', {
           status: 500,
           headers: corsHeaders
         });
@@ -72,7 +72,7 @@ export default {
 
         // Validate required fields
         if (!slug || !submission || !token) {
-          return new Response('Missing required fields: slug, submission, token', { 
+          return new Response('Missing required fields: slug, submission, token', {
             status: 400,
             headers: corsHeaders
           });
@@ -88,12 +88,12 @@ export default {
           body: turnstileForm,
           method: 'POST',
         });
-        
+
         const outcome = await turnstileResult.json();
-        
+
         if (!outcome.success) {
           console.error('Turnstile validation failed:', outcome);
-          return new Response('Invalid captcha', { 
+          return new Response('Invalid captcha', {
             status: 403,
             headers: corsHeaders
           });
@@ -113,7 +113,7 @@ export default {
 
         if (scholarshipError || !scholarship) {
           console.error('Scholarship fetch error:', scholarshipError);
-          return new Response('Scholarship not found', { 
+          return new Response('Scholarship not found', {
             status: 404,
             headers: corsHeaders
           });
@@ -121,9 +121,9 @@ export default {
 
         // 5. Extract Email for the Unique Constraint
         // Assumes your JSON schema has a field named "email"
-        const userEmail = submission.email; 
+        const userEmail = submission.email;
         if (!userEmail) {
-          return new Response('Email field is required', { 
+          return new Response('Email field is required', {
             status: 400,
             headers: corsHeaders
           });
@@ -139,14 +139,14 @@ export default {
 
         if (checkError && checkError.code !== 'PGRST116') {
           console.error('Duplicate check error:', checkError);
-          return new Response('Database error during duplicate check', { 
+          return new Response('Database error during duplicate check', {
             status: 500,
             headers: corsHeaders
           });
         }
 
         if (existingApplication) {
-          return new Response('You have already applied to this scholarship.', { 
+          return new Response('You have already applied to this scholarship.', {
             status: 409,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
@@ -154,7 +154,7 @@ export default {
 
         // 7. Process file movement from temp to permanent storage
         const processedSubmission = { ...submission };
-        
+
         // Find all file paths in the submission
         const findFilePaths = (obj, paths = []) => {
           if (typeof obj === 'string' && obj.startsWith('temp/')) {
@@ -166,12 +166,12 @@ export default {
         };
 
         const tempFilePaths = findFilePaths(submission);
-        
+
         // Move each file from temp to permanent storage
         for (const tempPath of tempFilePaths) {
           try {
             const finalPath = tempPath.replace('temp/', `applications/${scholarship.id}/`);
-            
+
             // Move file from temp-uploads to scholarship-applications bucket
             const { error: moveError } = await supabaseAdmin.storage
               .from('temp-uploads')
@@ -194,10 +194,10 @@ export default {
             };
 
             processedSubmission.submission_data = updatePath(processedSubmission.submission_data, tempPath, finalPath);
-            
+
           } catch (error) {
             console.error('Error moving file:', error);
-            return new Response('Failed to process file uploads', { 
+            return new Response('Failed to process file uploads', {
               status: 500,
               headers: corsHeaders
             });
@@ -215,22 +215,22 @@ export default {
 
         if (insertError) {
           console.error('Application insert error:', insertError);
-          return new Response('Database error', { 
+          return new Response('Database error', {
             status: 500,
             headers: corsHeaders
           });
         }
 
-        return new Response(JSON.stringify({ success: true }), { 
+        return new Response(JSON.stringify({ success: true }), {
           status: 200,
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         });
       } catch (error) {
         console.error('Submit error:', error);
-        return new Response('Invalid request format', { 
+        return new Response('Invalid request format', {
           status: 400,
           headers: corsHeaders
         });
@@ -247,7 +247,7 @@ export default {
 
         // Validate required fields
         if (!filename || !fileType || !fileSize || !token) {
-          return new Response('Missing required fields: filename, fileType, fileSize, token', { 
+          return new Response('Missing required fields: filename, fileType, fileSize, token', {
             status: 400,
             headers: corsHeaders
           });
@@ -259,9 +259,9 @@ export default {
           TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY ? 'present' : 'missing',
           token: token ? token.substring(0, 20) + '...' : 'missing'
         });
-        
+
         const turnstileForm = new FormData();
-        turnstileForm.append('secret', env.TURNSTILE_SECRET_KEY);
+        turnstileForm.append('secret', env.TURNSTILE_UPLOAD_SECRET_KEY);
         turnstileForm.append('response', token);
         turnstileForm.append('remoteip', request.headers.get('CF-Connecting-IP'));
 
@@ -269,13 +269,13 @@ export default {
           body: turnstileForm,
           method: 'POST',
         });
-        
+
         const outcome = await turnstileResult.json();
         console.log('Turnstile verification response:', outcome);
-        
+
         if (!outcome.success) {
           console.error('Turnstile validation failed:', outcome);
-          return new Response(`Invalid captcha: ${outcome['error-codes']?.[0] || 'Unknown error'}`, { 
+          return new Response(`Invalid captcha: ${outcome['error-codes']?.[0] || 'Unknown error'}`, {
             status: 403,
             headers: corsHeaders
           });
@@ -286,14 +286,14 @@ export default {
         const maxSize = 10 * 1024 * 1024; // 10MB
 
         if (!allowedTypes.includes(fileType)) {
-          return new Response('Invalid file type. Only PDF, DOCX, JPG, and PNG are allowed.', { 
+          return new Response('Invalid file type. Only PDF, DOCX, JPG, and PNG are allowed.', {
             status: 400,
             headers: corsHeaders
           });
         }
 
         if (fileSize > maxSize) {
-          return new Response('File size exceeds 10MB limit.', { 
+          return new Response('File size exceeds 10MB limit.', {
             status: 400,
             headers: corsHeaders
           });
@@ -323,7 +323,7 @@ export default {
 
         if (error) {
           console.error('Signed URL generation error:', error);
-          return new Response('Failed to generate upload URL', { 
+          return new Response('Failed to generate upload URL', {
             status: 500,
             headers: corsHeaders
           });
@@ -339,21 +339,21 @@ export default {
             file_path: filePath
           });
 
-        return new Response(JSON.stringify({ 
-          uploadUrl: data.signedUrl, 
+        return new Response(JSON.stringify({
+          uploadUrl: data.signedUrl,
           path: filePath,
           fileUuid: fileUuid
-        }), { 
+        }), {
           status: 200,
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         });
 
       } catch (error) {
         console.error('Sign upload error:', error);
-        return new Response('Invalid request format', { 
+        return new Response('Invalid request format', {
           status: 400,
           headers: corsHeaders
         });
@@ -364,7 +364,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/scholarships') {
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data, error } = await supabase
           .from('scholarships')
           .select('id, title, slug, active, description')
@@ -373,22 +373,22 @@ export default {
 
         if (error) {
           console.error('Scholarships fetch error:', error);
-          return new Response('Failed to fetch scholarships', { 
+          return new Response('Failed to fetch scholarships', {
             status: 500,
             headers: corsHeaders
           });
         }
 
-        return new Response(JSON.stringify(data), { 
+        return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         });
       } catch (error) {
         console.error('Request error:', error);
-        return new Response('Internal server error', { 
+        return new Response('Internal server error', {
           status: 500,
           headers: corsHeaders
         });
@@ -403,7 +403,7 @@ export default {
       headers: Object.fromEntries(request.headers.entries())
     });
 
-    return new Response(`Method Not Allowed or Endpoint Not Found: ${request.method} ${url.pathname}`, { 
+    return new Response(`Method Not Allowed or Endpoint Not Found: ${request.method} ${url.pathname}`, {
       status: 405,
       headers: corsHeaders
     });
