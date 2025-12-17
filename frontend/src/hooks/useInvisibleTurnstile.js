@@ -9,10 +9,21 @@ export const useInvisibleTurnstile = () => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    const checkTurnstile = () => {
+      if (window.turnstile) {
+        renderWidget();
+      } else {
+        // Check again after a delay
+        setTimeout(checkTurnstile, 100);
+      }
+    };
+
     if (window.turnstile) {
       renderWidget();
     } else {
       window.onloadTurnstileCallback = renderWidget;
+      // Fallback: check periodically if callback doesn't fire
+      setTimeout(checkTurnstile, 500);
     }
 
     return () => {
@@ -53,6 +64,11 @@ export const useInvisibleTurnstile = () => {
     console.log('widgetId.current:', widgetId.current);
     console.log('window.turnstile exists:', !!window.turnstile);
     console.log('containerRef.current:', containerRef.current);
+
+    if (!window.turnstile) {
+      console.error('Turnstile script not loaded - check network or ad blockers');
+      return Promise.resolve(null);
+    }
 
     if (!isReady || !widgetId.current) {
       console.log('Turnstile not ready, returning null');
