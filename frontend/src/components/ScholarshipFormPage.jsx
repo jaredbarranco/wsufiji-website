@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
+import ReactMarkdown from 'react-markdown';
 import { CustomFileWidget } from './CustomFileWidget';
 
 
@@ -53,6 +54,7 @@ const ScholarshipFormPage = () => {
   const [schema, setSchema] = useState(null);
   const [uiSchema, setUiSchema] = useState(null);
   const [formData, setFormData] = useState(null);
+  const [scholarship, setScholarship] = useState(null);
   const [turnstileToken, setTurnstileToken] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,6 +80,10 @@ const ScholarshipFormPage = () => {
         const data = await res.json();
         setSchema(data.form_schema);
         setUiSchema(data.ui_schema);
+        setScholarship({
+          name: data.title,
+          description: data.verbose_description
+        });
 
         // Load Draft from Local Storage (Client-side persistence)
         const savedDraft = localStorage.getItem(STORAGE_KEY);
@@ -263,6 +269,11 @@ const ScholarshipFormPage = () => {
         <div className="application-container">
           <div className="application-header">
             <h1>{schema.title || 'Scholarship Application'}</h1>
+            {scholarship?.description && (
+              <div className="scholarship-description">
+                <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+              </div>
+            )}
             <p className="application-intro">
               Complete the form below to apply for this scholarship. Your progress is automatically saved locally.
             </p>

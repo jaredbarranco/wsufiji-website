@@ -1,8 +1,34 @@
 -- Seed data for WSU Fiji Scholarship Application System (Stateless Architecture)
 
+-- Ensure storage buckets exist during seeding
+INSERT INTO "storage"."buckets" ("id", "name", "owner", "created_at", "updated_at", "public", "avif_autodetection", "file_size_limit", "allowed_mime_types", "owner_id", "type") 
+VALUES 
+('scholarship-applications', 'scholarship-applications', null, '2025-12-17 04:40:54.797553+00', '2025-12-17 04:40:54.797553+00', 'false', 'false', '10485760', null, null, 'STANDARD'), 
+('temp-uploads', 'temp-uploads', null, '2025-12-17 04:40:46.050714+00', '2025-12-17 04:40:46.050714+00', 'false', 'false', '5242880', null, null, 'STANDARD')
+ON CONFLICT (id) DO NOTHING;
+
 -- Insert sample scholarships with JSON Schema form definitions
-INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VALUES
+INSERT INTO public.scholarships (slug, title, active, description, verbose_description, form_schema, ui_schema) VALUES
 ('wsu-fiji-chapter-scholarship-2025', 'WSU Fiji Chapter Scholarship 2025', true, 
+'Annual scholarship for active WSU Fiji chapter members demonstrating leadership and academic excellence',
+'# WSU Fiji Chapter Scholarship 2025
+
+This annual scholarship is awarded to active members of the WSU Fiji chapter who demonstrate exceptional leadership qualities and academic excellence. 
+
+## Eligibility Requirements
+- Must be an active member of the WSU Fiji chapter
+- Minimum 3.0 cumulative GPA
+- Demonstrated leadership experience within the fraternity or campus community
+- Strong academic standing
+
+## Application Requirements
+- Complete academic transcript
+- Personal statement describing your involvement with WSU Fiji
+- Leadership experience documentation
+- Community service involvement documentation
+
+## Award Amount
+$1,000 - $2,500 annually, renewable based on continued eligibility', 
 '{
   "title": "WSU Fiji Chapter Scholarship Application 2025",
   "description": "Annual scholarship for active WSU Fiji chapter members demonstrating leadership and academic excellence",
@@ -141,6 +167,29 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
 }'::jsonb),
 
 ('wsu-fiji-leadership-award-2025', 'WSU Fiji Leadership Award 2025', true,
+'Recognition award for outstanding leadership within the fraternity and community',
+'# WSU Fiji Leadership Award 2025
+
+This prestigious award recognizes individuals who have demonstrated outstanding leadership within the WSU Fiji fraternity and the broader campus community.
+
+## Eligibility Requirements
+- Active WSU Fiji member for at least one full academic year
+- Minimum of 2 leadership positions (current or past)
+- Strong academic standing
+- Demonstrated commitment to fraternity values
+
+## Selection Criteria
+- Quality and impact of leadership roles
+- Leadership philosophy and vision
+- Contribution to fraternity growth and success
+- Community engagement and service
+- Academic performance
+
+## Award Benefits
+- $1,500 monetary award
+- Recognition at chapter banquet
+- Leadership development opportunities
+- Networking with alumni leaders', 
 '{
   "title": "WSU Fiji Leadership Award Application 2025",
   "description": "Recognition award for outstanding leadership within the fraternity and community",
@@ -232,6 +281,35 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
 }'::jsonb),
 
 ('wsu-fiji-academic-achievement-2025', 'WSU Fiji Academic Achievement Scholarship 2025', true,
+'Scholarship for members with exceptional academic performance',
+'# WSU Fiji Academic Achievement Scholarship 2025
+
+This scholarship recognizes WSU Fiji members who have demonstrated exceptional academic performance and commitment to their educational goals.
+
+## Eligibility Requirements
+- Active WSU Fiji member in good standing
+- Minimum 3.5 cumulative GPA
+- Completed at least 24 credit hours at WSU
+- Full-time enrollment status
+
+## Academic Requirements
+- Strong academic record across all semesters
+- Evidence of academic honors or achievements
+- Clear academic and career goals
+- Faculty recommendations (optional but encouraged)
+
+## Award Information
+- $2,000 annual scholarship
+- Can be renewed for up to 3 additional years
+- Recognition at academic awards ceremony
+- Mentorship opportunities with academic alumni
+
+## Fields of Study Priority
+While open to all majors, special consideration is given to students in:
+- Business and Finance
+- Engineering and Computer Science  
+- STEM fields
+- Pre-professional programs', 
 '{
   "title": "WSU Fiji Academic Achievement Scholarship 2025",
   "description": "Scholarship for members with exceptional academic performance",
@@ -319,6 +397,23 @@ INSERT INTO public.scholarships (slug, title, active, form_schema, ui_schema) VA
 }'::jsonb),
 
 ('test-scholarship-simple', 'Simple Test Scholarship', true,
+'A simple test scholarship for development and testing purposes',
+'# Simple Test Scholarship
+
+This is a basic scholarship used for development and testing purposes.
+
+## Purpose
+- Test application functionality
+- Verify form validation
+- Test submission workflow
+
+## Simple Requirements
+- Basic personal information
+- Short essay response
+- No complex documentation needed
+
+## Award
+$100 (test amount)', 
 '{
   "title": "Simple Test Application",
   "type": "object",

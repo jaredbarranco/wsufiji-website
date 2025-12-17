@@ -149,6 +149,102 @@ body {
     font-size: 1.1rem;
 }
 
+.scholarship-description {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0 2rem 0;
+    text-align: left;
+}
+
+.scholarship-description h1,
+.scholarship-description h2,
+.scholarship-description h3,
+.scholarship-description h4,
+.scholarship-description h5,
+.scholarship-description h6 {
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.scholarship-description h1 { font-size: 1.8rem; }
+.scholarship-description h2 { font-size: 1.5rem; }
+.scholarship-description h3 { font-size: 1.3rem; }
+.scholarship-description h4 { font-size: 1.1rem; }
+
+.scholarship-description p {
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.scholarship-description ul,
+.scholarship-description ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.scholarship-description li {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.scholarship-description strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.scholarship-description em {
+    color: #666;
+    font-style: italic;
+}
+
+.scholarship-description a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.scholarship-description a:hover {
+    text-decoration: underline;
+}
+
+.scholarship-description blockquote {
+    border-left: 4px solid #3498db;
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #666;
+}
+
+.scholarship-description code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #e74c3c;
+}
+
+.scholarship-description pre {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 1.5rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.scholarship-description pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+}
+
 .application-form {
     background: #f8f9fa;
     padding: 2rem;
@@ -928,16 +1024,7 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.deadline {
-    display: inline-block;
-    background: #f8f9fa;
-    color: #e74c3c;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid #fadbd8;
-}
+
 
 .scholarship-description {
     margin-bottom: 1.5rem;

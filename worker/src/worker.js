@@ -33,7 +33,7 @@ export default {
         
         const { data, error } = await supabase
           .from('scholarships')
-          .select('form_schema, ui_schema, id')
+          .select('form_schema, ui_schema, id, title, description, verbose_description')
           .eq('slug', slug)
           .eq('active', true)
           .single();
@@ -367,7 +367,7 @@ export default {
         
         const { data, error } = await supabase
           .from('scholarships')
-          .select('id, title, slug, active, deadline')
+          .select('id, title, slug, active, description')
           .eq('active', true)
           .order('title');
 

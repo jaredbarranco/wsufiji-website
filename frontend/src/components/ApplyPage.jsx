@@ -28,22 +28,19 @@ const ApplyPage = () => {
             id: 1,
             slug: 'academic-excellence',
             title: 'Academic Excellence Scholarship',
-            description: 'Awarded to students with outstanding academic achievement',
-            deadline: '2025-03-01'
+            description: 'Awarded to students with outstanding academic achievement'
           },
           {
             id: 2,
             slug: 'leadership-award',
             title: 'Leadership Award',
-            description: 'Recognizing students who demonstrate exceptional leadership qualities',
-            deadline: '2025-02-15'
+            description: 'Recognizing students who demonstrate exceptional leadership qualities'
           },
           {
             id: 3,
             slug: 'community-service',
             title: 'Community Service Scholarship',
-            description: 'For students committed to making a difference in their communities',
-            deadline: '2025-03-15'
+            description: 'For students committed to making a difference in their communities'
           }
         ]);
       } finally {
@@ -129,9 +126,6 @@ const ApplyPage = () => {
               <div key={scholarship.id} className="scholarship-card">
                 <div className="scholarship-header">
                   <h3>{scholarship.title}</h3>
-                  <span className="deadline">
-                    Deadline: {new Date(scholarship.deadline).toLocaleDateString()}
-                  </span>
                 </div>
                 <div className="scholarship-description">
                   <p>{scholarship.description}</p>
