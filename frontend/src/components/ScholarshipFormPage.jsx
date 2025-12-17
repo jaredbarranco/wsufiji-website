@@ -57,6 +57,7 @@ const ScholarshipFormPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
   const [formKey, setFormKey] = useState(0); // Key to force re-render of form
 
   // Create a unique key for LocalStorage so different scholarships don't overwrite each other
@@ -118,6 +119,10 @@ const ScholarshipFormPage = () => {
   const handleChange = ({ formData }) => {
     setFormData(formData);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    // Clear submit error when user makes changes
+    if (submitError) {
+      setSubmitError(null);
+    }
   };
 
   // Submit Handler
@@ -142,8 +147,32 @@ const ScholarshipFormPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Submission failed');
+        let errorMessage = 'Submission failed';
+        try {
+          const contentType = response.headers.get('content-type');
+          
+          // First try to get the response as text
+          const responseText = await response.text();
+          
+          if (contentType && contentType.includes('application/json')) {
+            try {
+              // Try to parse as JSON
+              const errorData = JSON.parse(responseText);
+              errorMessage = errorData.message || responseText || errorMessage;
+            } catch (jsonParseError) {
+              // If JSON parsing fails, use the raw text
+              errorMessage = responseText || errorMessage;
+            }
+          } else {
+            // Handle non-JSON error responses (like plain text)
+            errorMessage = responseText || errorMessage;
+          }
+        } catch (parseError) {
+          // If getting text fails, use the status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        setSubmitError(errorMessage);
+        return;
       }
 
       const result = await response.json();
@@ -156,7 +185,7 @@ const ScholarshipFormPage = () => {
 
     } catch (err) {
       console.error('Submission error:', err);
-      alert("Error submitting application: " + err.message);
+      setSubmitError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -252,32 +281,21 @@ const ScholarshipFormPage = () => {
               file: CustomFileWidget
             }}
           >
-            <div className="security-section" style={{ 
-              margin: '30px 0',
-              padding: '20px',
-              border: '1px solid #ddd', 
-              borderRadius: '8px',
-              backgroundColor: '#f9f9f9',
-              textAlign: 'center'
-            }}>
-              <h3 style={{ marginBottom: '15px' }}>
-                Security Verification
-              </h3>
-              <p style={{ marginBottom: '20px', color: '#666' }}>
-                Please complete the security check below before submitting your application.
-              </p>
-              <div className="turnstile-container">
-                <Turnstile
-                  sitekey={TURNSTILE_SITE_KEY}
-                  onVerify={(token) => {
-                    console.log('Turnstile verification success, token length:', token ? token.length : 'none');
-                    setTurnstileToken(token);
-                  }}
-                />
-              </div>
-            </div>
-            
             <div className="submit-section">
+              {submitError && (
+                <div style={{ 
+                  color: '#d32f2f', 
+                  fontSize: '14px', 
+                  marginBottom: '15px',
+                  padding: '10px',
+                  backgroundColor: '#ffebee',
+                  border: '1px solid #ffcdd2',
+                  borderRadius: '4px',
+                  textAlign: 'center'
+                }}>
+                  {submitError}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={isSubmitting || !turnstileToken}
@@ -296,9 +314,19 @@ const ScholarshipFormPage = () => {
                   color: '#666',
                   textAlign: 'center'
                 }}>
-                  Please complete the security verification above before submitting.
+                  Please complete the security verification below before submitting.
                 </p>
               )}
+            </div>
+            
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <Turnstile
+                sitekey={TURNSTILE_SITE_KEY}
+                onVerify={(token) => {
+                  console.log('Turnstile verification success, token length:', token ? token.length : 'none');
+                  setTurnstileToken(token);
+                }}
+              />
             </div>
           </Form>
         </div>

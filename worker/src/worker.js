@@ -129,7 +129,30 @@ export default {
           });
         }
 
-        // 6. Process file movement from temp to permanent storage
+        // 6. Check for duplicate application BEFORE processing files
+        const { data: existingApplication, error: checkError } = await supabaseAdmin
+          .from('applications')
+          .select('id')
+          .eq('scholarship_id', scholarship.id)
+          .eq('email', userEmail)
+          .maybeSingle();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.error('Duplicate check error:', checkError);
+          return new Response('Database error during duplicate check', { 
+            status: 500,
+            headers: corsHeaders
+          });
+        }
+
+        if (existingApplication) {
+          return new Response('You have already applied to this scholarship.', { 
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // 7. Process file movement from temp to permanent storage
         const processedSubmission = { ...submission };
         
         // Find all file paths in the submission
@@ -181,7 +204,7 @@ export default {
           }
         }
 
-        // 7. Insert Application
+        // 8. Insert Application
         const { error: insertError } = await supabaseAdmin
           .from('applications')
           .insert({
@@ -192,13 +215,6 @@ export default {
 
         if (insertError) {
           console.error('Application insert error:', insertError);
-          // Handle unique constraint violation (User applied twice)
-          if (insertError.code === '23505') {
-            return new Response('You have already applied to this scholarship.', { 
-              status: 409,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-          }
           return new Response('Database error', { 
             status: 500,
             headers: corsHeaders
