@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-const TURNSTILE_SITE_KEY = '0x4AAAAAACGrI9rCasWZr4zl';
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY_INVISIBLE || '0x4AAAAAACGrI9rCasWZr4zl';
 
 export const useInvisibleTurnstile = () => {
   const containerRef = useRef(null);

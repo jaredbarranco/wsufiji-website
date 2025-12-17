@@ -64,7 +64,7 @@ const ScholarshipFormPage = () => {
 
   // Create a unique key for LocalStorage so different scholarships don't overwrite each other
   const STORAGE_KEY = `draft_${scholarshipSlug}`;
-  const TURNSTILE_SITE_KEY = '0x4AAAAAACGrI9rCasWZr4zl'; // Replace with actual site key
+  const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY_FORM || '0x4AAAAAACGrI9rCasWZr4zl';
 
   // Fetch the Form Definition (Schema) from Cloudflare Worker
   useEffect(() => {
