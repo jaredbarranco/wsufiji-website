@@ -395,6 +395,88 @@ export default {
       }
     }
 
+    // Endpoint 5: GET /apply/{applicationName}/{applicationUuid}
+    if (request.method === 'GET' && url.pathname.startsWith('/apply/')) {
+      const pathParts = url.pathname.split('/').filter(part => part.length > 0);
+      
+      if (pathParts.length !== 3) {
+        return new Response('Invalid URL format. Expected: /apply/{applicationName}/{applicationUuid}', {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+
+      const [, applicationName, applicationUuid] = pathParts;
+
+      try {
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+        // Get scholarship info first
+        const { data: scholarship, error: scholarshipError } = await supabase
+          .from('scholarships')
+          .select('id, title, slug, form_schema, ui_schema, description')
+          .eq('slug', applicationName)
+          .eq('active', true)
+          .single();
+
+        if (scholarshipError || !scholarship) {
+          console.error('Scholarship fetch error:', scholarshipError);
+          return new Response('Scholarship not found', {
+            status: 404,
+            headers: corsHeaders
+          });
+        }
+
+        // Get application data
+        const { data: application, error: applicationError } = await supabase
+          .from('applications')
+          .select('id, email, submission_data, created_at')
+          .eq('scholarship_id', scholarship.id)
+          .eq('id', applicationUuid)
+          .single();
+
+        if (applicationError || !application) {
+          console.error('Application fetch error:', applicationError);
+          return new Response('Application not found', {
+            status: 404,
+            headers: corsHeaders
+          });
+        }
+
+        // Return combined data
+        const responseData = {
+          scholarship: {
+            id: scholarship.id,
+            title: scholarship.title,
+            slug: scholarship.slug,
+            description: scholarship.description,
+            form_schema: scholarship.form_schema,
+            ui_schema: scholarship.ui_schema
+          },
+          application: {
+            id: application.id,
+            email: application.email,
+            submission_data: application.submission_data,
+            created_at: application.created_at
+          }
+        };
+
+        return new Response(JSON.stringify(responseData), {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.error('Request error:', error);
+        return new Response('Internal server error', {
+          status: 500,
+          headers: corsHeaders
+        });
+      }
+    }
+
     // Debug endpoint - log all unhandled requests
     console.log('Unhandled request:', {
       method: request.method,
