@@ -125,6 +125,16 @@ const ScholarshipFormPage = () => {
     }
   };
 
+  // Clear Form Handler
+  const handleClearForm = () => {
+    if (window.confirm('Are you sure you want to clear all form fields? This action cannot be undone.')) {
+      setFormData({});
+      localStorage.removeItem(STORAGE_KEY);
+      setFormKey(prev => prev + 1); // Force re-render to clear file inputs
+      setSubmitError(null); // Clear any submission errors
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async ({ formData }) => {
     if (!turnstileToken) {
@@ -296,17 +306,49 @@ const ScholarshipFormPage = () => {
                   {submitError}
                 </div>
               )}
-              <button
-                type="submit"
-                disabled={isSubmitting || !turnstileToken}
-                className={`submit-btn ${isSubmitting ? 'loading' : ''}`}
-                style={{ 
-                  opacity: (!turnstileToken || isSubmitting) ? 0.6 : 1,
-                  cursor: (!turnstileToken || isSubmitting) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Application"}
-              </button>
+              <div style={{ 
+                display: 'flex', 
+                gap: '15px', 
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  type="button"
+                  onClick={handleClearForm}
+                  disabled={isSubmitting}
+                  className="clear-btn"
+                  style={{
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 30px',
+                    borderRadius: '5px',
+                    fontSize: '16px',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    opacity: isSubmitting ? 0.6 : 1
+                  }}
+                >
+                  Clear Application
+                </button>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !turnstileToken}
+                  className={`submit-btn ${isSubmitting ? 'loading' : ''}`}
+                  style={{ 
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 30px',
+                    borderRadius: '5px',
+                    fontSize: '16px',
+                    opacity: (!turnstileToken || isSubmitting) ? 0.6 : 1,
+                    cursor: (!turnstileToken || isSubmitting) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Application"}
+                </button>
+              </div>
               {!turnstileToken && (
                 <p style={{ 
                   marginTop: '10px', 
