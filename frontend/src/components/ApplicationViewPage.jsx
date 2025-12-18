@@ -132,12 +132,15 @@ const ApplicationViewPage = () => {
           <div className="apply-header">
             <h1>{scholarship.title}</h1>
             <p className="apply-intro">
-              Application submitted by {application.email} on {new Date(application.created_at).toLocaleDateString()}
+              Application submitted by {application.email} on {new Date(application.created_at).toLocaleString(undefined, { 
+                timeZoneName: 'short',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </p>
-            <div className="application-info">
-              <span className="application-id">Application ID: {application.id}</span>
-              <span className="submission-date">Submitted: {new Date(application.created_at).toLocaleString()}</span>
-            </div>
           </div>
 
           <div className="scholarship-description">
