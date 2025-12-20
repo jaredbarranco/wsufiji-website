@@ -221,7 +221,7 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
   }
 
   return (
-    <div className="application-review">
+    <div className="application-review container-wide">
       <div className="review-header">
         <button className="btn btn-secondary" onClick={onBack}>
           ← Back to Scholarships
