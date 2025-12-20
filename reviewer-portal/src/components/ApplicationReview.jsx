@@ -16,6 +16,20 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
   })
   const [submitting, setSubmitting] = useState(false)
 
+  // Helper function to check if a field is visible to reviewers
+  const isFieldVisible = (fieldName) => {
+    if (!currentApplication?.scholarship?.reviewer_field_visibility) {
+      return true // Default to visible if no config
+    }
+
+    const config = currentApplication.scholarship.reviewer_field_visibility
+    if (config.mode !== 'denylist' || !Array.isArray(config.fields)) {
+      return true // Default to visible if config is invalid
+    }
+
+    return !config.fields.includes(fieldName)
+  }
+
   // Helper function to render different field value types
   const renderFieldValue = (value) => {
     if (value === null || value === undefined) {
@@ -271,25 +285,31 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
               </div>
               
               <div className="application-content">
-                {currentApplication.submission_data && (
-                  <div className="applicant-info">
-                    <h4>Applicant Information</h4>
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <label>Name:</label>
-                        <span>{currentApplication.submission_data.fullName || currentApplication.submission_data.full_name || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Email:</label>
-                        <span>{currentApplication.email || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Phone:</label>
-                        <span>{currentApplication.submission_data.phone || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                 {currentApplication.submission_data && (
+                   <div className="applicant-info">
+                     <h4>Applicant Information</h4>
+                     <div className="info-grid">
+                       {isFieldVisible('fullName') && (
+                         <div className="info-item">
+                           <label>Name:</label>
+                           <span>{currentApplication.submission_data.fullName || currentApplication.submission_data.full_name || 'N/A'}</span>
+                         </div>
+                       )}
+                       {isFieldVisible('email') && (
+                         <div className="info-item">
+                           <label>Email:</label>
+                           <span>{currentApplication.email || 'N/A'}</span>
+                         </div>
+                       )}
+                       {isFieldVisible('phone') && (
+                         <div className="info-item">
+                           <label>Phone:</label>
+                           <span>{currentApplication.submission_data.phone || 'N/A'}</span>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 )}
                 
                 {currentApplication.submission_data && (
                   <div className="form-responses">

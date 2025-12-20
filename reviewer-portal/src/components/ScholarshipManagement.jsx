@@ -14,8 +14,9 @@ const ScholarshipManagement = () => {
     verbose_description: '',
     deadline: '',
     active: true,
-    form_schema: {},
-    ui_schema: {}
+    form_schema: '{}',
+    ui_schema: '{}',
+    reviewer_field_visibility: '{"mode": "denylist", "fields": []}'
   })
 
   useEffect(() => {
@@ -50,12 +51,14 @@ const ScholarshipManagement = () => {
       // Validate JSON schemas
       const form_schema = validateJSON(formData.form_schema, 'Form Schema')
       const ui_schema = validateJSON(formData.ui_schema, 'UI Schema')
+      const reviewer_field_visibility = validateJSON(formData.reviewer_field_visibility, 'Reviewer Field Visibility')
 
       const submissionData = {
         ...formData,
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
         form_schema,
-        ui_schema
+        ui_schema,
+        reviewer_field_visibility
       }
 
       if (editingScholarship) {
@@ -74,7 +77,8 @@ const ScholarshipManagement = () => {
         deadline: '',
         active: true,
         form_schema: '{}',
-        ui_schema: '{}'
+        ui_schema: '{}',
+        reviewer_field_visibility: '{"mode": "denylist", "fields": []}'
       })
       fetchScholarships()
     } catch (err) {
@@ -92,7 +96,8 @@ const ScholarshipManagement = () => {
       deadline: scholarship.deadline ? new Date(scholarship.deadline).toISOString().slice(0, 16) : '',
       active: scholarship.active,
       form_schema: JSON.stringify(scholarship.form_schema || {}, null, 2),
-      ui_schema: JSON.stringify(scholarship.ui_schema || {}, null, 2)
+      ui_schema: JSON.stringify(scholarship.ui_schema || {}, null, 2),
+      reviewer_field_visibility: JSON.stringify(scholarship.reviewer_field_visibility || { mode: 'denylist', fields: [] }, null, 2)
     })
     setShowCreateForm(false)
   }
@@ -119,7 +124,8 @@ const ScholarshipManagement = () => {
       deadline: '',
       active: true,
       form_schema: '{}',
-      ui_schema: '{}'
+      ui_schema: '{}',
+      reviewer_field_visibility: '{"mode": "denylist", "fields": []}'
     })
   }
 
@@ -183,6 +189,54 @@ const ScholarshipManagement = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+  }
+
+  const getFormSchemaFields = () => {
+    try {
+      const schema = JSON.parse(formData.form_schema)
+      if (schema.properties && typeof schema.properties === 'object') {
+        return Object.keys(schema.properties)
+      }
+      return []
+    } catch (err) {
+      return []
+    }
+  }
+
+  const handleVisibilityFieldToggle = (fieldName, checked) => {
+    try {
+      const currentVisibility = JSON.parse(formData.reviewer_field_visibility)
+      let fields = currentVisibility.fields || []
+
+      if (checked) {
+        if (!fields.includes(fieldName)) {
+          fields.push(fieldName)
+        }
+      } else {
+        fields = fields.filter(field => field !== fieldName)
+      }
+
+      const newVisibility = {
+        ...currentVisibility,
+        fields: fields
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        reviewer_field_visibility: JSON.stringify(newVisibility, null, 2)
+      }))
+    } catch (err) {
+      setError('Failed to update field visibility: Invalid JSON structure')
+    }
+  }
+
+  const getHiddenFields = () => {
+    try {
+      const visibility = JSON.parse(formData.reviewer_field_visibility)
+      return visibility.fields || []
+    } catch (err) {
+      return []
+    }
   }
 
   if (loading) {
@@ -390,9 +444,49 @@ const ScholarshipManagement = () => {
                   </small>
                 </div>
               </div>
-            </div>
-            
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+             </div>
+
+             <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+               <h4>Reviewer Field Visibility</h4>
+               <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                 Select which fields should be hidden from reviewers. These fields will not be visible in the reviewer interface but will still be stored in the database.
+               </p>
+
+               <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '1rem' }}>
+                 <div style={{ marginBottom: '1rem' }}>
+                   <strong>Mode:</strong> Denylist (hide selected fields, show everything else)
+                 </div>
+
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                   {getFormSchemaFields().map(fieldName => {
+                     const isHidden = getHiddenFields().includes(fieldName)
+                     return (
+                       <label key={fieldName} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                         <input
+                           type="checkbox"
+                           checked={isHidden}
+                           onChange={(e) => handleVisibilityFieldToggle(fieldName, e.target.checked)}
+                           style={{ width: 'auto' }}
+                         />
+                         <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{fieldName}</span>
+                       </label>
+                     )
+                   })}
+                 </div>
+
+                 {getFormSchemaFields().length === 0 && (
+                   <p style={{ color: '#666', fontStyle: 'italic' }}>
+                     No form fields found. Configure the Form Schema above to see field visibility options.
+                   </p>
+                 )}
+
+                 <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+                   <strong>Hidden Fields:</strong> {getHiddenFields().length > 0 ? getHiddenFields().join(', ') : 'None'}
+                 </div>
+               </div>
+             </div>
+
+             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
               <button type="submit" className="btn">
                 {editingScholarship ? 'Update' : 'Create'} Scholarship
               </button>
@@ -409,16 +503,17 @@ const ScholarshipManagement = () => {
           <p>No scholarships found. Create your first scholarship above.</p>
         ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #ddd' }}>
-                <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Title</th>
-                <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Slug</th>
-                <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Deadline</th>
-                <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Form Fields</th>
-                <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Active</th>
-                <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Actions</th>
-              </tr>
-            </thead>
+             <thead>
+               <tr style={{ borderBottom: '2px solid #ddd' }}>
+                 <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Title</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Slug</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Deadline</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Form Fields</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Hidden Fields</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Active</th>
+                 <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Actions</th>
+               </tr>
+             </thead>
             <tbody>
               {Array.isArray(scholarships) && scholarships.map((scholarship) => (
                 <tr key={scholarship.id} style={{ borderBottom: '1px solid #eee' }}>
@@ -427,12 +522,17 @@ const ScholarshipManagement = () => {
                   <td style={{ padding: '0.75rem' }}>
                     {scholarship.deadline ? new Date(scholarship.deadline).toLocaleString() : 'No deadline'}
                   </td>
-                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                    {scholarship.form_schema?.properties ? 
-                      Object.keys(scholarship.form_schema.properties).length : 0
-                    } fields
-                  </td>
-                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                     {scholarship.form_schema?.properties ?
+                       Object.keys(scholarship.form_schema.properties).length : 0
+                     } fields
+                   </td>
+                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                     {scholarship.reviewer_field_visibility?.fields ?
+                       scholarship.reviewer_field_visibility.fields.length : 0
+                     } hidden
+                   </td>
+                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                     <span style={{ 
                       padding: '0.25rem 0.5rem', 
                       borderRadius: '4px', 

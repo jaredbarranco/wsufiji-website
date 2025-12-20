@@ -454,6 +454,11 @@ INSERT INTO public.applications (scholarship_id, email, submission_data) VALUES
  'james.anderson@wsu.edu', 
  '{"fullName": "James Anderson", "email": "james.anderson@wsu.edu", "phone": "509-555-0101", "highSchool": "Pullman High School", "gpa": 3.8, "leadershipExperience": [{"organization": "WSU Fiji", "position": "Treasurer", "startDate": "2023-08-15", "endDate": "2024-12-15", "description": "Managed chapter finances and organized fundraising events"}], "communityService": "Volunteered at local food bank for 50 hours, organized campus cleanup events", "essay": "As a dedicated member of the WSU Fiji chapter, I have demonstrated strong leadership skills through my role as treasurer. I have maintained a 3.8 GPA while actively participating in community service projects and fraternity events. My academic achievements reflect my commitment to excellence both in and out of the classroom."}'::jsonb),
 
-((SELECT id FROM public.scholarships WHERE slug = 'wsu-fiji-leadership-award-2025'), 
- 'sarah.johnson@wsu.edu', 
- '{"fullName": "Sarah Johnson", "email": "sarah.johnson@wsu.edu", "phone": "509-555-0102", "leadershipRoles": [{"organization": "WSU Fiji", "position": "President", "startDate": "2023-08-15", "achievements": "Led chapter to win Chapter of the Year award, increased membership by 25%"}, {"organization": "Student Government", "position": "Senator", "startDate": "2022-09-01", "endDate": "2023-05-15", "achievements": "Authored legislation for improved campus parking"}], "leadershipEssay": "My leadership philosophy is centered on servant leadership and leading by example. Through my role as WSU Fiji chapter president, I learned that true leadership is about empowering others to reach their full potential rather than seeking personal recognition."}'::jsonb);
+ ((SELECT id FROM public.scholarships WHERE slug = 'wsu-fiji-leadership-award-2025'),
+  'sarah.johnson@wsu.edu',
+  '{"fullName": "Sarah Johnson", "email": "sarah.johnson@wsu.edu", "phone": "509-555-0102", "leadershipRoles": [{"organization": "WSU Fiji", "position": "President", "startDate": "2023-08-15", "achievements": "Led chapter to win Chapter of the Year award, increased membership by 25%"}, {"organization": "Student Government", "position": "Senator", "startDate": "2022-09-01", "endDate": "2023-05-15", "achievements": "Authored legislation for improved campus parking"}], "leadershipEssay": "My leadership philosophy is centered on servant leadership and leading by example. Through my role as WSU Fiji chapter president, I learned that true leadership is about empowering others to reach their full potential rather than seeking personal recognition."}'::jsonb);
+
+-- Set default field visibility for existing scholarships
+UPDATE scholarships
+SET reviewer_field_visibility = '{"mode": "denylist", "fields": ["phone", "email"]}'::jsonb
+WHERE slug IN ('wsu-fiji-chapter-scholarship-2025', 'wsu-fiji-leadership-award-2025', 'wsu-fiji-academic-achievement-2025');

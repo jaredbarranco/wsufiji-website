@@ -42,6 +42,50 @@ function authenticateFromHeaders(request, env) {
   return { email, name, authenticated: true, isDevelopment: false };
 }
 
+// Field visibility configuration validation and filtering
+function validateFieldVisibilityConfig(config) {
+  if (!config || typeof config !== 'object') {
+    return { mode: 'denylist', fields: [] };
+  }
+
+  const { mode, fields } = config;
+
+  // Only denylist mode is supported initially
+  if (mode !== 'denylist') {
+    return { mode: 'denylist', fields: [] };
+  }
+
+  // Ensure fields is an array
+  if (!Array.isArray(fields)) {
+    return { mode: 'denylist', fields: [] };
+  }
+
+  // Filter out non-string fields and ensure they are top-level field names
+  const validFields = fields.filter(field =>
+    typeof field === 'string' &&
+    field.length > 0 &&
+    !field.includes('.') // No nested fields for now
+  );
+
+  return { mode: 'denylist', fields: validFields };
+}
+
+function filterSubmissionData(submissionData, visibilityConfig) {
+  const config = validateFieldVisibilityConfig(visibilityConfig);
+  const { mode, fields } = config;
+
+  if (mode !== 'denylist' || !Array.isArray(fields) || fields.length === 0) {
+    return submissionData; // No filtering needed
+  }
+
+  const filtered = { ...submissionData };
+  fields.forEach(field => {
+    delete filtered[field];
+  });
+
+  return filtered;
+}
+
 // Role verification with caching
 async function verifyReviewerRole(supabase, email, requiredRole = 'reviewer') {
   const { data: reviewer, error } = await supabase
@@ -901,7 +945,7 @@ export default {
         
         const { data: scholarships, error } = await supabase
           .from('scholarships')
-          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility, created_at, updated_at')
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -935,11 +979,11 @@ export default {
         });
       }
 
-      try {
-        const body = await request.json();
-        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema } = body;
+       try {
+         const body = await request.json();
+         const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
 
-        if (!slug || !title) {
+         if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -948,19 +992,20 @@ export default {
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         
-        const { data: scholarship, error } = await supabase
+         const { data: scholarship, error } = await supabase
           .from('scholarships')
-          .insert({ 
-            slug, 
-            title, 
-            description: description || null, 
-            verbose_description: verbose_description || null, 
-            deadline: deadline || null, 
+          .insert({
+            slug,
+            title,
+            description: description || null,
+            verbose_description: verbose_description || null,
+            deadline: deadline || null,
             active: active !== undefined ? active : true,
             form_schema: form_schema || {},
-            ui_schema: ui_schema || {}
+            ui_schema: ui_schema || {},
+            reviewer_field_visibility: reviewer_field_visibility || { mode: 'denylist', fields: [] }
           })
-          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility, created_at, updated_at')
           .single();
 
         if (error) {
@@ -1001,9 +1046,9 @@ export default {
       }
 
       try {
-        const scholarshipId = url.pathname.split('/').pop();
-        const body = await request.json();
-        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema } = body;
+         const scholarshipId = url.pathname.split('/').pop();
+         const body = await request.json();
+         const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
 
         if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
@@ -1014,20 +1059,21 @@ export default {
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         
-        const { data: scholarship, error } = await supabase
+         const { data: scholarship, error } = await supabase
           .from('scholarships')
-          .update({ 
-            slug, 
-            title, 
-            description: description || null, 
-            verbose_description: verbose_description || null, 
-            deadline: deadline || null, 
+          .update({
+            slug,
+            title,
+            description: description || null,
+            verbose_description: verbose_description || null,
+            deadline: deadline || null,
             active: active !== undefined ? active : true,
             form_schema: form_schema || {},
-            ui_schema: ui_schema || {}
+            ui_schema: ui_schema || {},
+            reviewer_field_visibility: reviewer_field_visibility || { mode: 'denylist', fields: [] }
           })
           .eq('id', scholarshipId)
-          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility, created_at, updated_at')
           .single();
 
         if (error) {
@@ -1118,6 +1164,21 @@ export default {
         const scholarshipId = url.pathname.split('/').pop();
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
+        // First, get the scholarship's field visibility config
+        const { data: scholarship, error: scholarshipError } = await supabase
+          .from('scholarships')
+          .select('reviewer_field_visibility')
+          .eq('id', scholarshipId)
+          .single();
+
+        if (scholarshipError) {
+          console.error('Scholarship fetch error:', scholarshipError);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch scholarship config' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
         const { data: applications, error } = await supabase
           .from('applications')
           .select(`
@@ -1138,15 +1199,18 @@ export default {
           });
         }
 
-        // Transform the data to include review status
-        const transformedApplications = applications.map(app => ({
-          id: app.id,
-          email: app.email,
-          submission_data: app.submission_data,
-          created_at: app.created_at,
-          reviewed: app.submission_data?.review ? true : false,
-          review: app.submission_data?.review || null
-        }));
+        // Transform the data to include review status with field filtering
+        const transformedApplications = applications.map(app => {
+          const filteredSubmissionData = filterSubmissionData(app.submission_data, scholarship.reviewer_field_visibility);
+          return {
+            id: app.id,
+            email: app.email,
+            submission_data: filteredSubmissionData,
+            created_at: app.created_at,
+            reviewed: app.submission_data?.review ? true : false,
+            review: app.submission_data?.review || null
+          };
+        });
 
         return new Response(JSON.stringify({ success: true, data: transformedApplications }), {
           status: 200,
@@ -1182,7 +1246,7 @@ export default {
             email,
             submission_data,
             created_at,
-            scholarships!inner(id, title, form_schema)
+            scholarships!inner(id, title, form_schema, reviewer_field_visibility)
           `)
           .eq('id', applicationId)
           .single();
@@ -1195,25 +1259,30 @@ export default {
           });
         }
 
+        // Apply field visibility filtering
+        const visibilityConfig = application.scholarships.reviewer_field_visibility;
+        const filteredSubmissionData = filterSubmissionData(application.submission_data, visibilityConfig);
+
         // Transform the data to match frontend expectations
         const transformedApplication = {
           id: application.id,
           email: application.email,
-          submission_data: application.submission_data,
+          submission_data: filteredSubmissionData,
           submitted_at: application.created_at,
           reviewed: application.submission_data?.review ? true : false,
           review: application.submission_data?.review || null,
-          // Add applicant info extracted from submission_data
+          // Add applicant info extracted from filtered submission_data
           applicant: {
             email: application.email,
-            full_name: application.submission_data?.fullName || application.submission_data?.full_name || 'N/A',
-            phone: application.submission_data?.phone || 'N/A'
+            full_name: filteredSubmissionData?.fullName || filteredSubmissionData?.full_name || 'N/A',
+            phone: filteredSubmissionData?.phone || 'N/A'
           },
-          // Add scholarship info
+          // Add scholarship info including visibility config
           scholarship: {
             id: application.scholarships.id,
             title: application.scholarships.title,
-            form_schema: application.scholarships.form_schema
+            form_schema: application.scholarships.form_schema,
+            reviewer_field_visibility: application.scholarships.reviewer_field_visibility
           }
         };
 
