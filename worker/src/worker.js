@@ -8,8 +8,21 @@ function isDevelopmentRequest(request) {
 
 // Enhanced authentication with development bypass
 function authenticateFromHeaders(request, env) {
-  // Development bypass
+  // Development bypass - check for local headers first
   if (isDevelopmentRequest(request)) {
+    const devEmail = request.headers.get('CF-Access-Client-Id');
+    const devName = request.headers.get('X-Dev-Name') || 'Development User';
+    
+    if (devEmail) {
+      return { 
+        email: devEmail, 
+        name: devName, 
+        authenticated: true,
+        isDevelopment: true 
+      };
+    }
+    
+    // Fallback if no dev email provided
     return { 
       email: 'dev@localhost', 
       name: 'Development User', 
@@ -81,7 +94,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain',
+      'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain, CF-Access-Client-Id, X-Dev-Name',
     };
 
     // Handle CORS preflight
@@ -752,6 +765,58 @@ export default {
         console.error('Reviewer deletion endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 10: POST /api/reviewer/auth
+    if (request.method === 'POST' && url.pathname === '/api/reviewer/auth') {
+      try {
+        const auth = authenticateFromHeaders(request, env);
+        if (auth.error) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: auth.error 
+          }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        const roleCheck = await verifyReviewerRole(supabase, auth.email, 'reviewer');
+        
+        if (roleCheck.error) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: roleCheck.error 
+          }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          data: {
+            id: roleCheck.reviewer.id,
+            name: roleCheck.reviewer.name,
+            email: auth.email,
+            role: roleCheck.reviewer.role
+          }
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+
+      } catch (error) {
+        console.error('Auth endpoint error:', error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Authentication failed' 
+        }), {
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }

@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { auth } from './services/api'
 import ReviewerManagement from './components/ReviewerManagement'
+import CloudflareHeaderConfig from './components/CloudflareHeaderConfig'
 
 function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentView, setCurrentView] = useState('dashboard')
+  const [cfHeaders, setCfHeaders] = useState(null)
 
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      const savedHeaders = localStorage.getItem('cf-headers')
+      if (savedHeaders) {
+        const parsed = JSON.parse(savedHeaders)
+        setCfHeaders(parsed)
+      }
+    }
     checkAuth()
   }, [])
 
@@ -119,6 +128,11 @@ function App() {
             </div>
           </div>
         </header>
+        {import.meta.env.DEV && (
+          <div className="container">
+            <CloudflareHeaderConfig onHeadersSet={setCfHeaders} />
+          </div>
+        )}
         <Navigation />
         <main>
           {currentView === 'dashboard' && <Dashboard />}
@@ -135,6 +149,11 @@ function App() {
           <h1>WSU Fiji Reviewer Portal</h1>
         </div>
       </header>
+      {import.meta.env.DEV && (
+        <div className="container">
+          <CloudflareHeaderConfig onHeadersSet={setCfHeaders} />
+        </div>
+      )}
       <div className="landing">
         <h2>Scholarship Review Portal</h2>
         <p>Access the WSU Fiji scholarship application review system to evaluate and score applications.</p>

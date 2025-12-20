@@ -12,11 +12,27 @@ class ApiError extends Error {
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`
   
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+
+  if (import.meta.env.DEV) {
+    const savedHeaders = localStorage.getItem('cf-headers')
+    if (savedHeaders) {
+      const cfHeaders = JSON.parse(savedHeaders)
+      // Only include the development-relevant headers
+      if (cfHeaders['CF-Access-Client-Id']) {
+        headers['CF-Access-Client-Id'] = cfHeaders['CF-Access-Client-Id']
+      }
+      if (cfHeaders['X-Dev-Name']) {
+        headers['X-Dev-Name'] = cfHeaders['X-Dev-Name']
+      }
+    }
+  }
+  
   const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     ...options,
   }
 
