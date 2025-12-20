@@ -94,7 +94,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain, CF-Access-Client-Id, X-Dev-Name',
+      'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain, CF-Access-Client-Id, X-Dev-Name, Authorization',
     };
 
     // Handle CORS preflight
@@ -1077,7 +1077,7 @@ export default {
       try {
         const scholarshipId = url.pathname.split('/').pop();
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { error } = await supabase
           .from('scholarships')
           .delete()
@@ -1097,6 +1097,215 @@ export default {
         });
       } catch (error) {
         console.error('Scholarship deletion endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 16: GET /api/reviewer/applications/:scholarshipId
+    if (request.method === 'GET' && url.pathname.match(/^\/api\/reviewer\/applications\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'reviewer');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const scholarshipId = url.pathname.split('/').pop();
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+        const { data: applications, error } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            email,
+            submission_data,
+            created_at,
+            scholarships!inner(id, title)
+          `)
+          .eq('scholarship_id', scholarshipId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Applications fetch error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch applications' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Transform the data to include review status
+        const transformedApplications = applications.map(app => ({
+          id: app.id,
+          email: app.email,
+          submission_data: app.submission_data,
+          created_at: app.created_at,
+          reviewed: app.submission_data?.review ? true : false,
+          review: app.submission_data?.review || null
+        }));
+
+        return new Response(JSON.stringify({ success: true, data: transformedApplications }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Applications endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 17: GET /api/reviewer/application/:applicationId
+    if (request.method === 'GET' && url.pathname.match(/^\/api\/reviewer\/application\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'reviewer');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const applicationId = url.pathname.split('/').pop();
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+        const { data: application, error } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            email,
+            submission_data,
+            created_at,
+            scholarships!inner(id, title, form_schema)
+          `)
+          .eq('id', applicationId)
+          .single();
+
+        if (error) {
+          console.error('Application fetch error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Application not found' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Transform the data to match frontend expectations
+        const transformedApplication = {
+          id: application.id,
+          email: application.email,
+          submission_data: application.submission_data,
+          submitted_at: application.created_at,
+          reviewed: application.submission_data?.review ? true : false,
+          review: application.submission_data?.review || null,
+          // Add applicant info extracted from submission_data
+          applicant: {
+            email: application.email,
+            full_name: application.submission_data?.fullName || application.submission_data?.full_name || 'N/A',
+            phone: application.submission_data?.phone || 'N/A'
+          },
+          // Add scholarship info
+          scholarship: {
+            id: application.scholarships.id,
+            title: application.scholarships.title,
+            form_schema: application.scholarships.form_schema
+          }
+        };
+
+        return new Response(JSON.stringify({ success: true, data: transformedApplication }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Application endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 18: POST /api/reviewer/review/:applicationId
+    if (request.method === 'POST' && url.pathname.match(/^\/api\/reviewer\/review\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'reviewer');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const applicationId = url.pathname.split('/').pop();
+        const body = await request.json();
+        const { overall_rating, academic_potential, leadership_potential, financial_need, comments } = body;
+
+        // Validate required fields
+        if (!overall_rating) {
+          return new Response(JSON.stringify({ success: false, error: 'Overall rating is required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+        // First, get the current application data
+        const { data: application, error: fetchError } = await supabase
+          .from('applications')
+          .select('submission_data')
+          .eq('id', applicationId)
+          .single();
+
+        if (fetchError || !application) {
+          console.error('Application fetch error:', fetchError);
+          return new Response(JSON.stringify({ success: false, error: 'Application not found' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Prepare the review data
+        const reviewData = {
+          overall_rating: parseInt(overall_rating),
+          academic_potential: academic_potential ? parseInt(academic_potential) : null,
+          leadership_potential: leadership_potential ? parseInt(leadership_potential) : null,
+          financial_need: financial_need ? parseInt(financial_need) : null,
+          comments: comments || null,
+          reviewer_id: auth.reviewer.id,
+          submitted_at: new Date().toISOString()
+        };
+
+        // Update the application with the review data
+        const updatedSubmissionData = {
+          ...application.submission_data,
+          review: reviewData
+        };
+
+        const { error: updateError } = await supabase
+          .from('applications')
+          .update({ submission_data: updatedSubmissionData })
+          .eq('id', applicationId);
+
+        if (updateError) {
+          console.error('Review submission error:', updateError);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to submit review' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: reviewData }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Review submission endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

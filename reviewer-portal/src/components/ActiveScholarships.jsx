@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { getActiveScholarships } from '../services/api'
+import ApplicationReview from './ApplicationReview'
 
 const ActiveScholarships = () => {
   const [scholarships, setScholarships] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedScholarship, setSelectedScholarship] = useState(null)
 
   useEffect(() => {
     fetchScholarships()
@@ -43,6 +45,24 @@ const ActiveScholarships = () => {
       style: 'currency',
       currency: 'USD'
     }).format(amount)
+  }
+
+  const handleViewApplications = (scholarship) => {
+    setSelectedScholarship(scholarship)
+  }
+
+  const handleBackToScholarships = () => {
+    setSelectedScholarship(null)
+  }
+
+  if (selectedScholarship) {
+    return (
+      <ApplicationReview 
+        scholarshipId={selectedScholarship.id}
+        scholarshipTitle={selectedScholarship.title}
+        onBack={handleBackToScholarships}
+      />
+    )
   }
 
   if (loading) {
@@ -100,7 +120,10 @@ const ActiveScholarships = () => {
             </div>
             
             <div className="scholarship-actions">
-              <button className="btn btn-secondary">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => handleViewApplications(scholarship)}
+              >
                 View Applications
               </button>
             </div>

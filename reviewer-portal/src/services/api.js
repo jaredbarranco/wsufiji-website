@@ -130,6 +130,21 @@ export const deleteScholarship = async (scholarshipId) => {
   })
 }
 
+export const getApplicationsForScholarship = async (scholarshipId) => {
+  return apiRequest(`/api/reviewer/applications/${scholarshipId}`)
+}
+
+export const getApplicationDetails = async (applicationId) => {
+  return apiRequest(`/api/reviewer/application/${applicationId}`)
+}
+
+export const submitReview = async (applicationId, reviewData) => {
+  return apiRequest(`/api/reviewer/review/${applicationId}`, {
+    method: 'POST',
+    body: JSON.stringify(reviewData),
+  })
+}
+
 export default {
   auth,
   getProgress,
@@ -144,4 +159,7 @@ export default {
   createScholarship,
   updateScholarship,
   deleteScholarship,
+  getApplicationsForScholarship,
+  getApplicationDetails,
+  submitReview,
 }
