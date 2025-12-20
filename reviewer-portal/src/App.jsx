@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { auth } from './services/api'
 import ReviewerManagement from './components/ReviewerManagement'
+import ActiveScholarships from './components/ActiveScholarships'
 import CloudflareHeaderConfig from './components/CloudflareHeaderConfig'
 
 function App() {
@@ -109,8 +110,7 @@ function App() {
       )}
       {!isAdmin && (
         <div className="reviewer-dashboard">
-          <h3>Reviewer Dashboard</h3>
-          <p>Reviewer portal features coming soon...</p>
+          <ActiveScholarships />
         </div>
       )}
     </div>

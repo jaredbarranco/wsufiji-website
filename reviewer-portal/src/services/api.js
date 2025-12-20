@@ -102,6 +102,10 @@ export const deleteReviewer = async (reviewerId) => {
   })
 }
 
+export const getActiveScholarships = async () => {
+  return apiRequest('/api/reviewer/scholarships')
+}
+
 export default {
   auth,
   getProgress,
@@ -111,4 +115,5 @@ export default {
   createReviewer,
   updateReviewer,
   deleteReviewer,
+  getActiveScholarships,
 }

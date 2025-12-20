@@ -822,6 +822,70 @@ export default {
       }
     }
 
+    // Endpoint 11: GET /api/reviewer/scholarships
+    if (request.method === 'GET' && url.pathname === '/api/reviewer/scholarships') {
+      try {
+        const auth = authenticateFromHeaders(request, env);
+        if (auth.error) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: auth.error 
+          }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        const roleCheck = await verifyReviewerRole(supabase, auth.email, 'reviewer');
+        
+        if (roleCheck.error) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: roleCheck.error 
+          }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const { data: scholarships, error } = await supabase
+          .from('scholarships')
+          .select('id, title, description, deadline')
+          .eq('active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Scholarships query error:', error);
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'Failed to fetch scholarships' 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          data: scholarships || []
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+
+      } catch (error) {
+        console.error('Scholarships endpoint error:', error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Failed to fetch scholarships' 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     // Debug endpoint - log all unhandled requests
     console.log('Unhandled request:', {
       method: request.method,
