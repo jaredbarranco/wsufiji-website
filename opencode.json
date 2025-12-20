@@ -1,7 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    "Use the supabase MCP against the locally running database on localhost:54321 to confirm current db schema prior to doing any database operations like: SELECT, INSERT, UPDATE, DELETE, or ALTERS, or when writing supabase migration files."
+    "Use the supabase MCP against the locally running database on localhost:54321 to confirm current db schema prior to doing any database operations like: SELECT, INSERT, UPDATE, DELETE, or ALTERS, or when writing supabase migration files.",
+    "Do not try and run front end or back end servers unless explicitly asked."
   ],
   "mcp": {
     "supabase": {
