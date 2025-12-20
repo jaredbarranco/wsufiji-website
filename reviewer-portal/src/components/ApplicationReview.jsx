@@ -305,16 +305,22 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
                           fieldOrder = formSchema.uiSchema['ui:order'];
                         }
 
-                        return fieldOrder.map(key => {
+                        const shortFields = [];
+                        const longFields = [];
+
+                        fieldOrder.forEach(key => {
                           const value = currentApplication.submission_data[key];
 
                           // Skip review data and undefined values
-                          if (key === 'review' || value === undefined) return null;
+                          if (key === 'review' || value === undefined) return;
 
                           // Get field title from form_schema if available
                           const fieldTitle = formSchema?.properties?.[key]?.title || key;
 
-                          return (
+                          // Check if this is a long text field (string > 500 chars)
+                          const isLongText = typeof value === 'string' && value.length > 500;
+
+                          const fieldElement = (
                             <div key={key} className="response-item">
                               <label>{fieldTitle}:</label>
                               <div className="response-value">
@@ -322,7 +328,15 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
                               </div>
                             </div>
                           );
+
+                          if (isLongText) {
+                            longFields.push(fieldElement);
+                          } else {
+                            shortFields.push(fieldElement);
+                          }
                         });
+
+                        return [...shortFields, ...longFields];
                       })()}
                     </div>
                   </div>
