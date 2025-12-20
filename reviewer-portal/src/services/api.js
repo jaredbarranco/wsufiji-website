@@ -106,6 +106,30 @@ export const getActiveScholarships = async () => {
   return apiRequest('/api/reviewer/scholarships')
 }
 
+export const getScholarships = async () => {
+  return apiRequest('/api/admin/scholarships')
+}
+
+export const createScholarship = async (scholarshipData) => {
+  return apiRequest('/api/admin/scholarships', {
+    method: 'POST',
+    body: JSON.stringify(scholarshipData),
+  })
+}
+
+export const updateScholarship = async (scholarshipId, scholarshipData) => {
+  return apiRequest(`/api/admin/scholarships/${scholarshipId}`, {
+    method: 'PUT',
+    body: JSON.stringify(scholarshipData),
+  })
+}
+
+export const deleteScholarship = async (scholarshipId) => {
+  return apiRequest(`/api/admin/scholarships/${scholarshipId}`, {
+    method: 'DELETE',
+  })
+}
+
 export default {
   auth,
   getProgress,
@@ -116,4 +140,8 @@ export default {
   updateReviewer,
   deleteReviewer,
   getActiveScholarships,
+  getScholarships,
+  createScholarship,
+  updateScholarship,
+  deleteScholarship,
 }

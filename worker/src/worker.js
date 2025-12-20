@@ -886,6 +886,224 @@ export default {
       }
     }
 
+    // Endpoint 12: GET /api/admin/scholarships
+    if (request.method === 'GET' && url.pathname === '/api/admin/scholarships') {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: scholarships, error } = await supabase
+          .from('scholarships')
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Scholarships fetch error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch scholarships' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: scholarships || [] }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Scholarships endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 13: POST /api/admin/scholarships
+    if (request.method === 'POST' && url.pathname === '/api/admin/scholarships') {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const body = await request.json();
+        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema } = body;
+
+        if (!slug || !title) {
+          return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: scholarship, error } = await supabase
+          .from('scholarships')
+          .insert({ 
+            slug, 
+            title, 
+            description: description || null, 
+            verbose_description: verbose_description || null, 
+            deadline: deadline || null, 
+            active: active !== undefined ? active : true,
+            form_schema: form_schema || {},
+            ui_schema: ui_schema || {}
+          })
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .single();
+
+        if (error) {
+          console.error('Scholarship creation error:', error);
+          if (error.code === '23505') {
+            return new Response(JSON.stringify({ success: false, error: 'A scholarship with this slug already exists' }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          return new Response(JSON.stringify({ success: false, error: 'Failed to create scholarship' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: scholarship }), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Scholarship creation endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 14: PUT /api/admin/scholarships/:id
+    if (request.method === 'PUT' && url.pathname.match(/^\/api\/admin\/scholarships\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const scholarshipId = url.pathname.split('/').pop();
+        const body = await request.json();
+        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema } = body;
+
+        if (!slug || !title) {
+          return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: scholarship, error } = await supabase
+          .from('scholarships')
+          .update({ 
+            slug, 
+            title, 
+            description: description || null, 
+            verbose_description: verbose_description || null, 
+            deadline: deadline || null, 
+            active: active !== undefined ? active : true,
+            form_schema: form_schema || {},
+            ui_schema: ui_schema || {}
+          })
+          .eq('id', scholarshipId)
+          .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, created_at, updated_at')
+          .single();
+
+        if (error) {
+          console.error('Scholarship update error:', error);
+          if (error.code === '23505') {
+            return new Response(JSON.stringify({ success: false, error: 'A scholarship with this slug already exists' }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          return new Response(JSON.stringify({ success: false, error: 'Failed to update scholarship' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (!scholarship) {
+          return new Response(JSON.stringify({ success: false, error: 'Scholarship not found' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: scholarship }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Scholarship update endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 15: DELETE /api/admin/scholarships/:id
+    if (request.method === 'DELETE' && url.pathname.match(/^\/api\/admin\/scholarships\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const scholarshipId = url.pathname.split('/').pop();
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { error } = await supabase
+          .from('scholarships')
+          .delete()
+          .eq('id', scholarshipId);
+
+        if (error) {
+          console.error('Scholarship deletion error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to delete scholarship' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Scholarship deletion endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     // Debug endpoint - log all unhandled requests
     console.log('Unhandled request:', {
       method: request.method,

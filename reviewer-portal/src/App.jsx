@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { auth } from './services/api'
 import ReviewerManagement from './components/ReviewerManagement'
+import ScholarshipManagement from './components/ScholarshipManagement'
 import ActiveScholarships from './components/ActiveScholarships'
 import CloudflareHeaderConfig from './components/CloudflareHeaderConfig'
 
@@ -80,6 +81,12 @@ function App() {
               Dashboard
             </button>
             <button
+              className={`nav-link ${currentView === 'scholarships' ? 'active' : ''}`}
+              onClick={() => setCurrentView('scholarships')}
+            >
+              Scholarship Management
+            </button>
+            <button
               className={`nav-link ${currentView === 'reviewers' ? 'active' : ''}`}
               onClick={() => setCurrentView('reviewers')}
             >
@@ -99,6 +106,13 @@ function App() {
         <div className="admin-dashboard">
           <h3>Admin Dashboard</h3>
           <div className="dashboard-actions">
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setCurrentView('scholarships')}
+              style={{ marginRight: '1rem' }}
+            >
+              Manage Scholarships
+            </button>
             <button 
               className="btn btn-primary" 
               onClick={() => setCurrentView('reviewers')}
@@ -136,6 +150,7 @@ function App() {
         <Navigation />
         <main>
           {currentView === 'dashboard' && <Dashboard />}
+          {currentView === 'scholarships' && isAdmin && <ScholarshipManagement />}
           {currentView === 'reviewers' && isAdmin && <ReviewerManagement />}
         </main>
       </div>
