@@ -1,5 +1,71 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Development bypass for localhost
+function isDevelopmentRequest(request) {
+  const clientIP = request.headers.get('CF-Connecting-IP');
+  return clientIP === '127.0.0.1' || clientIP === '::1';
+}
+
+// Enhanced authentication with development bypass
+function authenticateFromHeaders(request, env) {
+  // Development bypass
+  if (isDevelopmentRequest(request)) {
+    return { 
+      email: 'dev@localhost', 
+      name: 'Development User', 
+      authenticated: true,
+      isDevelopment: true 
+    };
+  }
+  
+  const email = request.headers.get('CF-Access-Authenticated-User-Email');
+  const name = request.headers.get('CF-Access-Authenticated-User-Name');
+  const teamDomain = request.headers.get('CF-Access-Domain');
+  
+  if (!email || !teamDomain) {
+    return { error: 'Unauthorized - Missing Zero Trust headers' };
+  }
+  
+  return { email, name, authenticated: true, isDevelopment: false };
+}
+
+// Role verification with caching
+async function verifyReviewerRole(supabase, email, requiredRole = 'reviewer') {
+  const { data: reviewer, error } = await supabase
+    .from('reviewers')
+    .select('id, name, role, is_active')
+    .eq('email', email)
+    .eq('is_active', true)
+    .single();
+    
+  if (error || !reviewer) {
+    return { error: 'Reviewer not found or inactive' };
+  }
+  
+  const roleHierarchy = { 'admin': 3, 'committee_member': 2, 'reviewer': 1 };
+  if (roleHierarchy[reviewer.role] < roleHierarchy[requiredRole]) {
+    return { error: 'Insufficient permissions' };
+  }
+  
+  return { reviewer };
+}
+
+// Endpoint protection middleware
+async function protectEndpoint(request, env, requiredRole = 'reviewer') {
+  const auth = authenticateFromHeaders(request, env);
+  if (auth.error) return { error: auth.error, status: 401 };
+  
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+  const roleCheck = await verifyReviewerRole(supabase, auth.email, requiredRole);
+  if (roleCheck.error) return { error: roleCheck.error, status: 403 };
+  
+  return { 
+    reviewer: roleCheck.reviewer, 
+    email: auth.email,
+    isDevelopment: auth.isDevelopment 
+  };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -14,8 +80,8 @@ export default {
     // CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain',
     };
 
     // Handle CORS preflight
@@ -473,6 +539,220 @@ export default {
         return new Response('Internal server error', {
           status: 500,
           headers: corsHeaders
+        });
+      }
+    }
+
+    // Endpoint 6: GET /api/admin/reviewers
+    if (request.method === 'GET' && url.pathname === '/api/admin/reviewers') {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: reviewers, error } = await supabase
+          .from('reviewers')
+          .select('id, name, email, role, is_active, created_at')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Reviewers fetch error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch reviewers' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: reviewers }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Reviewers endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 7: POST /api/admin/reviewers
+    if (request.method === 'POST' && url.pathname === '/api/admin/reviewers') {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const body = await request.json();
+        const { name, email, role } = body;
+
+        if (!name || !email || !role) {
+          return new Response(JSON.stringify({ success: false, error: 'Name, email, and role are required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (!['admin', 'reviewer', 'committee_member'].includes(role)) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid role. Must be admin, reviewer, or committee_member' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: reviewer, error } = await supabase
+          .from('reviewers')
+          .insert({ name, email, role })
+          .select('id, name, email, role, is_active, created_at')
+          .single();
+
+        if (error) {
+          console.error('Reviewer creation error:', error);
+          if (error.code === '23505') {
+            return new Response(JSON.stringify({ success: false, error: 'A reviewer with this email already exists' }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          return new Response(JSON.stringify({ success: false, error: 'Failed to create reviewer' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: reviewer }), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Reviewer creation endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 8: PUT /api/admin/reviewers/:id
+    if (request.method === 'PUT' && url.pathname.match(/^\/api\/admin\/reviewers\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const reviewerId = url.pathname.split('/').pop();
+        const body = await request.json();
+        const { name, email, role, is_active } = body;
+
+        if (!name || !email || !role) {
+          return new Response(JSON.stringify({ success: false, error: 'Name, email, and role are required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (!['admin', 'reviewer', 'committee_member'].includes(role)) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid role. Must be admin, reviewer, or committee_member' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { data: reviewer, error } = await supabase
+          .from('reviewers')
+          .update({ name, email, role, is_active })
+          .eq('id', reviewerId)
+          .select('id, name, email, role, is_active, created_at')
+          .single();
+
+        if (error) {
+          console.error('Reviewer update error:', error);
+          if (error.code === '23505') {
+            return new Response(JSON.stringify({ success: false, error: 'A reviewer with this email already exists' }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          return new Response(JSON.stringify({ success: false, error: 'Failed to update reviewer' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (!reviewer) {
+          return new Response(JSON.stringify({ success: false, error: 'Reviewer not found' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: reviewer }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Reviewer update endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Endpoint 9: DELETE /api/admin/reviewers/:id
+    if (request.method === 'DELETE' && url.pathname.match(/^\/api\/admin\/reviewers\/[^\/]+$/)) {
+      const auth = await protectEndpoint(request, env, 'admin');
+      if (auth.error) {
+        return new Response(JSON.stringify({ success: false, error: auth.error }), {
+          status: auth.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      try {
+        const reviewerId = url.pathname.split('/').pop();
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        const { error } = await supabase
+          .from('reviewers')
+          .delete()
+          .eq('id', reviewerId);
+
+        if (error) {
+          console.error('Reviewer deletion error:', error);
+          return new Response(JSON.stringify({ success: false, error: 'Failed to delete reviewer' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Reviewer deletion endpoint error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
