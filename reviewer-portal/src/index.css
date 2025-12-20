@@ -507,6 +507,14 @@ main {
   border-top: 1px solid #f0f0f0;
 }
 
+/* Scholarship Management Table Styles */
+.scholarships-table-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
 @media (max-width: 768px) {
   .scholarships-list {
     grid-template-columns: 1fr;

@@ -404,7 +404,7 @@ const ScholarshipManagement = () => {
         </div>
       )}
 
-      <div className="scholarships-list">
+      <div className="scholarships-table-container">
         {scholarships.length === 0 ? (
           <p>No scholarships found. Create your first scholarship above.</p>
         ) : (
