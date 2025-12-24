@@ -33,6 +33,7 @@ jobs:
       ## deploy only when a push to main occurred
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
+        environment: production
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
