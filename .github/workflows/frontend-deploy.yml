@@ -28,6 +28,10 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Fix rollup optional dependency
+        working-directory: ./frontend
+        run: npm install @rollup/rollup-linux-x64-gnu --no-save
+
       - name: Build
         working-directory: ./frontend
         run: npm run build

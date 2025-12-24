@@ -12,8 +12,8 @@ on:
       - "worker/**"   # Optional: PR checks only when worker changes
 
 jobs:
-  deploy:
-    name: Deploy Worker
+  test:
+    name: Test Worker
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,11 +30,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      ## deploy only when a push to main occurred
+      - name: Validate worker syntax
+        run: node -c src/worker.js
+
+  deploy:
+    name: Deploy Worker
+    runs-on: ubuntu-latest
+    needs: test
+    environment: production
+    if: github.ref == 'refs/heads/main'  # Prevent PRs from deploying to prod
+    defaults:
+      run:
+        working-directory: ./worker
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-        if: github.ref == 'refs/heads/main'  # Prevent PRs from deploying to prod
