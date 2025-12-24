@@ -9,7 +9,7 @@ const ApplyPage = () => {
   useEffect(() => {
     async function fetchScholarships() {
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
         const response = await fetch(`${API_BASE}/scholarships`);
         
         if (!response.ok) {

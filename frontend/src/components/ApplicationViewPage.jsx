@@ -12,7 +12,7 @@ const ApplicationViewPage = () => {
   useEffect(() => {
     async function fetchApplication() {
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
         const response = await fetch(`${API_BASE}/apply/${applicationName}/${applicationUuid}`);
         
         if (!response.ok) {
