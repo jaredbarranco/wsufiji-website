@@ -3,7 +3,8 @@ main = "src/worker.js"
 compatibility_date = "2025-01-01"
 
 [vars]
-SUPABASE_URL = "https://your-project-ref.supabase.co"
+# SUPABASE_URL=http://localhost:54321
+# SUPABASE_SERVICE_ROLE_KEY=sb_secret_....
+# TURNSTILE_SECRET_KEY=0x4....
+# TURNSTILE_UPLOAD_SECRET_KEY=0x4....
 
-# secrets (set via wrangler CLI, not committed)
-# SUPABASE_SERVICE_ROLE_KEY

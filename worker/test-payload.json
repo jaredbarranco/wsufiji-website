@@ -1,0 +1,25 @@
+{
+  "full_name": "John Doe",
+  "email": "john.doe@example.com",
+  "high_school_name": "Washington High School",
+  "phone": "555-123-4567",
+  "gender": "male",
+  "anticipated_gpa": 3.8,
+  "essay": "I am passionate about leadership and community service. Throughout high school, I have participated in various extracurricular activities that have helped me develop strong leadership skills. As president of the Student Council, I organized school events and led student meetings, learning to collaborate with diverse groups of people. I believe these experiences have prepared me for the challenges of college and beyond.",
+  "leadership_roles": [
+    {
+      "organization_name": "Student Council",
+      "role_title": "President",
+      "start_date": "2023-09-01",
+      "end_date": "2024-06-01",
+      "responsibilities": "Organized school events and led student meetings"
+    },
+    {
+      "organization_name": "National Honor Society",
+      "role_title": "Treasurer",
+      "start_date": "2022-09-01",
+      "end_date": "2024-06-01",
+      "responsibilities": "Managed club finances and organized community service projects"
+    }
+  ]
+}

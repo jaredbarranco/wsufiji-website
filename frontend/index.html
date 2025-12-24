@@ -3,26 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSU Fiji - Under Construction</title>
-    <link rel="stylesheet" href="src/style.css">
+    <title>WSU Fiji - Scholarship Application</title>
+    <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-    <div class="construction-container">
-        <div class="construction-content">
-            <img src="public/owl_construction.png" alt="Owl Under Construction" class="construction-image">
-            
-            <h1>WSU Fiji</h1>
-            <h2>Website Under Construction</h2>
-            
-            <p class="construction-message">
-                We're working hard on this now!
-                Check back soon for updates!
-            </p>
-            
-            <div class="construction-details">
-                <p>🚧 Building something special</p>
-            </div>
+    <div id="root">
+        <div class="container">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-logo">
+                        <h1>WSU Fiji</h1>
+                    </div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">Apply</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="application-main">
+                <div class="application-container">
+                    <div class="application-header">
+                        <h1 id="scholarship-title">Loading Application...</h1>
+                        <p class="application-intro">
+                            Please wait while we prepare your scholarship application.
+                        </p>
+                    </div>
+                    
+                    <div id="form-container" class="loading">
+                        <p>Loading form...</p>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <div class="footer-content">
+                    <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
+                </div>
+            </footer>
         </div>
     </div>
+
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <script type="module">
+        // Inject environment variables for vanilla JS
+        window.ENV = {
+            API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8787'
+        };
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

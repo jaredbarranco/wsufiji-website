@@ -1,0 +1,40 @@
+name: Deploy Worker to Cloudflare
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/worker-deploy.yml"
+      - "worker/**"   # Only triggers when worker changes
+  pull_request:
+    paths:
+      - ".github/workflows/worker-deploy.yml"
+      - "worker/**"   # Optional: PR checks only when worker changes
+
+jobs:
+  deploy:
+    name: Deploy Worker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./worker
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      ## deploy only when a push to main occurred
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+        if: github.ref == 'refs/heads/main'  # Prevent PRs from deploying to prod
