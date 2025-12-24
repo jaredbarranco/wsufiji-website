@@ -36,6 +36,20 @@ body {
     font-weight: 600;
 }
 
+.nav-logo-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-logo-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-logo-link:hover h1 {
+    color: #34495e;
+}
+
 .nav-menu {
     display: flex;
     list-style: none;

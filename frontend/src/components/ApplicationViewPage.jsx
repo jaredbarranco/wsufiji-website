@@ -38,7 +38,9 @@ const ApplicationViewPage = () => {
         <nav className="navbar">
           <div className="nav-container">
             <div className="nav-logo">
-              <h1>WSU Fiji</h1>
+              <Link to="/" className="nav-logo-link">
+                <h1>WSU Fiji</h1>
+              </Link>
             </div>
             <ul className="nav-menu">
               <li className="nav-item">
@@ -75,7 +77,9 @@ const ApplicationViewPage = () => {
         <nav className="navbar">
           <div className="nav-container">
             <div className="nav-logo">
-              <h1>WSU Fiji</h1>
+              <Link to="/" className="nav-logo-link">
+                <h1>WSU Fiji</h1>
+              </Link>
             </div>
             <ul className="nav-menu">
               <li className="nav-item">
