@@ -309,14 +309,18 @@ export default {
             const updatePath = (obj, oldPath, newPath) => {
               if (obj === oldPath) return newPath;
               if (typeof obj === 'object' && obj !== null) {
-                return Object.fromEntries(
-                  Object.entries(obj).map(([key, value]) => [key, updatePath(value, oldPath, newPath)])
-                );
+                const updated = {};
+                for (const [key, value] of Object.entries(obj)) {
+                  updated[key] = updatePath(value, oldPath, newPath);
+                }
+                return updated;
               }
               return obj;
             };
 
-            processedSubmission.submission_data = updatePath(processedSubmission.submission_data, tempPath, finalPath);
+            // Update the processed submission directly
+            const updatedSubmission = updatePath(processedSubmission, tempPath, finalPath);
+            Object.assign(processedSubmission, updatedSubmission);
 
           } catch (error) {
             console.error('Error moving file:', error);
