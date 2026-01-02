@@ -37,7 +37,7 @@ if (loading) {
     return (
       <Layout>
         {/* Hero Section */}
-        <section className="hero-section" style={{ minHeight: '60vh' }}>
+        <section className="hero-section hero-section-compact">
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <h1 className="hero-title">Loading Application...</h1>
@@ -54,7 +54,7 @@ if (loading) {
     return (
       <Layout>
         {/* Hero Section */}
-        <section className="hero-section" style={{ minHeight: '60vh' }}>
+        <section className="hero-section hero-section-compact">
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <h1 className="hero-title">Application Not Found</h1>

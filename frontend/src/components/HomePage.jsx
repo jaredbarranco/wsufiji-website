@@ -7,7 +7,7 @@ const HomePage = () => {
     <Layout>
 
       {/* Hero Section */}
-      <section className="hero-section">
+      <section className="hero-section" style={{ height: '100vh', minHeight: '600px' }}>
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">The Fiji Chapter of Phi Gamma Delta</h1>

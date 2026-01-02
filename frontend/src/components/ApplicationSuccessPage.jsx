@@ -8,7 +8,7 @@ const ApplicationSuccessPage = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="hero-section" style={{ minHeight: '60vh' }}>
+      <section className="hero-section">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <div style={{
