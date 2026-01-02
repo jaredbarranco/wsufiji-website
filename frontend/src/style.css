@@ -162,7 +162,7 @@ body {
     background: white;
     padding: 8rem 2rem 4rem;
     text-align: center;
-    margin-top: 60px;
+    margin-top: 0px;
 }
 
 .hero-content h1 {
@@ -173,12 +173,19 @@ body {
 }
 
 .hero-content p {
-    font-size: 1.2rem;
-    color: #666;
-    margin-bottom: 2rem;
+    font-family: 'Lato', 'Roboto', 'Open Sans', sans-serif;
+    line-height: 1.6;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    color: rgb(51, 51, 51);
+    font-weight: normal;
 }
 
 .cta-button {
@@ -1203,7 +1210,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: white;
+    color: #333;
 }
 
 .hero-section-compact {
@@ -1232,6 +1239,13 @@ body {
     margin-bottom: 2rem;
     font-family: 'Playfair Display', 'Merriweather', serif;
     line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #333;
+    margin-bottom: 2rem;
 }
 
 .hero-buttons {

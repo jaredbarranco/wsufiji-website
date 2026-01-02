@@ -31,9 +31,9 @@ const Navigation = () => {
           <li className="nav-item">
             <Link to="/apply" className={`nav-link ${isActive('/apply') ? 'active' : ''}`}>Scholarships</Link>
           </li>
-          <li className="nav-item">
-            <a href="#recruitment-form" className="nav-link">Recruitment</a>
-          </li>
+           <li className="nav-item">
+             <Link to="/#recruitment-form" className="nav-link">Recruitment</Link>
+           </li>
         </ul>
 
         {/* Mobile Menu Button */}
@@ -77,15 +77,15 @@ const Navigation = () => {
             Scholarships
           </Link>
         </li>
-        <li className="nav-item">
-          <a 
-            href="#recruitment-form" 
-            className="nav-link"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Recruitment
-          </a>
-        </li>
+         <li className="nav-item">
+           <Link
+             to="/#recruitment-form"
+             className="nav-link"
+             onClick={() => setMobileMenuOpen(false)}
+           >
+             Recruitment
+           </Link>
+         </li>
       </ul>
     </nav>
   );

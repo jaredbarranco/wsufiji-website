@@ -1,8 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Layout from './Layout';
 
 const HomePage = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.getElementById(location.hash.substring(1));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
+
   return (
     <Layout>
 
@@ -86,10 +97,10 @@ const HomePage = () => {
         <div className="stats-overlay"></div>
         <div className="container">
           <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-number">1899</div>
-              <div className="stat-label">Founded Year</div>
-            </div>
+             <div className="stat-item">
+               <div className="stat-number">1950</div>
+               <div className="stat-label">WSU Chapter Founded</div>
+             </div>
             <div className="stat-item">
               <div className="stat-number">85</div>
               <div className="stat-label">Active Members</div>
