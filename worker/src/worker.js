@@ -1312,7 +1312,7 @@ export default {
       try {
         const applicationId = url.pathname.split('/').pop();
         const body = await request.json();
-        const { overall_rating, academic_potential, leadership_potential, financial_need, comments } = body;
+        const { overall_rating, academic_potential, leadership_potential, comments } = body;
 
         // Validate required fields
         if (!overall_rating) {
@@ -1344,7 +1344,6 @@ export default {
           overall_rating: parseInt(overall_rating),
           academic_potential: academic_potential ? parseInt(academic_potential) : null,
           leadership_potential: leadership_potential ? parseInt(leadership_potential) : null,
-          financial_need: financial_need ? parseInt(financial_need) : null,
           comments: comments || null,
           reviewer_id: auth.reviewer.id,
           submitted_at: new Date().toISOString()
