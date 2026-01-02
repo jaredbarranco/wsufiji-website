@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Layout from './Layout';
 
 const ApplyPage = () => {
   const [scholarships, setScholarships] = useState([]);
@@ -53,89 +54,60 @@ const ApplyPage = () => {
 
   if (loading) {
     return (
-      <div className="container">
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <Link to="/" className="nav-logo-link">
-                <h1>WSU Fiji</h1>
-              </Link>
-            </div>
-            <ul className="nav-menu">
-              <li className="nav-item">
-                <Link to="/" className="nav-link">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/apply" className="nav-link active">Apply</Link>
-              </li>
-            </ul>
+      <Layout>
+        {/* Hero Section */}
+        <section className="hero-section" style={{ minHeight: '60vh' }}>
+          <div className="hero-overlay"></div>
+          <div className="hero-content">
+            <h1 className="hero-title">Loading Available Scholarships...</h1>
+             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+               Please wait while we fetch the latest scholarship opportunities.
+             </p>
           </div>
-        </nav>
-
-        <main className="apply-main">
-          <div className="apply-container">
-            <div className="loading">
-              <h2>Loading Available Scholarships...</h2>
-              <p>Please wait while we fetch the latest scholarship opportunities.</p>
-            </div>
-          </div>
-        </main>
-
-        <footer className="footer">
-          <div className="footer-content">
-            <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+        </section>
+      </Layout>
     );
   }
 
   return (
-    <div className="container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <h1>WSU Fiji</h1>
-          </div>
-          <ul className="nav-menu">
-            <li className="nav-item">
-              <Link to="/" className="nav-link">Home</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/apply" className="nav-link active">Apply</Link>
-            </li>
-          </ul>
+    <Layout>
+      {/* Hero Section */}
+      <section className="hero-section" style={{ minHeight: '60vh' }}>
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">Scholarship Opportunities</h1>
+           <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+             Select a scholarship below to start your application. Each scholarship has specific requirements and deadlines.
+           </p>
         </div>
-      </nav>
+      </section>
 
-      <main className="apply-main">
-        <div className="apply-container">
-          <div className="apply-header">
-            <h1>Available Scholarships</h1>
-            <p className="apply-intro">
-              Select a scholarship below to start your application. Each scholarship has specific requirements and deadlines.
-            </p>
-          </div>
-
+      {/* Scholarships Section */}
+      <section className="features-section">
+        <div className="container">
           {error && (
-            <div className="error-message">
+            <div className="error-message" style={{ marginBottom: '2rem' }}>
               <p>Unable to load latest scholarships. Showing available opportunities:</p>
             </div>
           )}
 
-          <div className="scholarships-grid">
+          <div className="features-grid">
             {scholarships.map((scholarship) => (
-              <div key={scholarship.id} className="scholarship-card">
-                <div className="scholarship-header">
-                  <h3>{scholarship.title}</h3>
+              <div key={scholarship.id} className="feature-card" style={{ textAlign: 'center' }}>
+                <div className="feature-icon" style={{ marginBottom: '1.5rem' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
                 </div>
-                <div className="scholarship-description">
-                  <p>{scholarship.description}</p>
-                </div>
+                <h3 className="feature-title">{scholarship.title}</h3>
+                <p className="feature-description" style={{ marginBottom: '1.5rem' }}>
+                  {scholarship.description}
+                </p>
                 <div className="scholarship-action">
                   <Link 
                     to={`/apply/${scholarship.slug}`} 
-                    className="scholarship-btn"
+                    className="hero-btn primary"
+                    style={{ display: 'inline-block', padding: '0.75rem 1.5rem', textDecoration: 'none' }}
                   >
                     Apply Now
                   </Link>
@@ -145,20 +117,14 @@ const ApplyPage = () => {
           </div>
 
           {scholarships.length === 0 && (
-            <div className="no-scholarships">
-              <h3>No Scholarships Available</h3>
+            <div className="no-scholarships" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#4a05a8' }}>No Scholarships Available</h3>
               <p>There are currently no scholarship opportunities available. Please check back later.</p>
             </div>
           )}
         </div>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-content">
-          <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+      </section>
+    </Layout>
   );
 };
 
