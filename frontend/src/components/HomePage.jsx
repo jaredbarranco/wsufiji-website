@@ -111,7 +111,7 @@ const HomePage = () => {
             </div>
             <div className="stat-item">
               <div className="stat-number">$50K</div>
-              <div className="stat-label">Money Raised</div>
+              <div className="stat-label">Scholarships Awarded</div>
             </div>
           </div>
         </div>
