@@ -165,7 +165,7 @@ body {
     margin-top: 0px;
 }
 
-.hero-content h1 {
+.hero-content h1:not(.hero-title) {
     font-size: 3rem;
     font-weight: 700;
     color: #2c3e50;
@@ -1101,7 +1101,16 @@ body {
 }
 
 .contact-info span {
-    opacity: 0.9;
+  opacity: 0.9;
+}
+
+.contact-link {
+  color: white;
+  text-decoration: none;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
 }
 
 .social-links {
@@ -1205,7 +1214,7 @@ body {
 /* Hero Section */
 .hero-section {
     position: relative;
-    background: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') center/cover;
+    background: url('/pullman_skyline.jpg') center/cover;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1215,6 +1224,7 @@ body {
 
 .hero-section-compact {
     max-height: 200px;
+    background: url('/pullman_skyline_subpage.jpg') center/cover;
 }
 
 .hero-overlay {
@@ -1223,7 +1233,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(74, 5, 168, 0.7);
+    background: rgba(74, 5, 168, 0.5);
 }
 
 .hero-content {
@@ -1239,6 +1249,7 @@ body {
     margin-bottom: 2rem;
     font-family: 'Playfair Display', 'Merriweather', serif;
     line-height: 1.2;
+    color: white;
 }
 
 .hero-subtitle {
@@ -1460,8 +1471,18 @@ body {
 }
 
 .footer-section p {
-    margin-bottom: 0.5rem;
-    opacity: 0.9;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.contact-link {
+  color: white;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
 }
 
 .footer-links {

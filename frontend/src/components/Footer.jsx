@@ -21,14 +21,14 @@ const Footer = () => {
             </ul>
           </div>
           
-          <div className="footer-section">
-            <h4>Contact Info</h4>
-            <p>wsufiji@wsu.edu</p>
-            <p>Pullman, WA 99164</p>
-            <div className="footer-social">
-              <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
-              <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-            </div>
+           <div className="footer-section">
+             <h4>Contact Info</h4>
+             <p><a href="mailto:recruitment@wsufiji.com" className="contact-link">recruitment@wsufiji.com</a></p>
+             <p>Pullman, WA 99164</p>
+             <div className="footer-social">
+               <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
+               <a href="https://www.instagram.com/wsufiji" target="_blank" rel="noopener noreferrer">Instagram</a>
+             </div>
           </div>
         </div>
         
