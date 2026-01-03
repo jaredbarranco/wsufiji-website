@@ -26,9 +26,9 @@ const AboutPage = () => {
               </p>
             </div>
             <div className="about-image">
-              <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                   alt="Phi Gamma Delta Brotherhood"
-                   className="about-img" />
+              <img src="/group_training.jpg"
+                alt="Phi Gamma Delta Brotherhood"
+                className="about-img" />
             </div>
           </div>
         </div>
@@ -42,12 +42,12 @@ const AboutPage = () => {
             <div className="feature-card">
               <div className="feature-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               </div>
-              <h3 className="feature-title">Founded in 1899</h3>
+              <h3 className="feature-title">Founded in 1950</h3>
               <p className="feature-description">
-                Phi Gamma Delta was established in 1899 and has since grown to become one of the largest
+                Phi Gamma Delta was established in 1848 and has since grown to become one of the largest
                 international fraternities in the world.
               </p>
             </div>
@@ -55,20 +55,20 @@ const AboutPage = () => {
             <div className="feature-card">
               <div className="feature-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
               </div>
-               <h3 className="feature-title">Founded in 1950</h3>
-               <p className="feature-description">
-                 The Fiji Chapter at Washington State University was established in 1950 and has been a cornerstone of campus life,
-                 fostering leadership and brotherhood for generations.
-               </p>
+              <h3 className="feature-title">Founded in 1950</h3>
+              <p className="feature-description">
+                The Fiji Chapter at Washington State University was established in 1950 and has been a cornerstone of campus life,
+                fostering leadership and brotherhood for generations.
+              </p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.01 2.01 0 0 0 18.06 7H15V6c0-1.1-.9-2-2-2H4c-1.1 0-1.99.9-1.99 2v3H1v5h2v13h18v-7h2v-2h-2zm-7-2h2v2h-2v-2z"/>
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.01 2.01 0 0 0 18.06 7H15V6c0-1.1-.9-2-2-2H4c-1.1 0-1.99.9-1.99 2v3H1v5h2v13h18v-7h2v-2h-2zm-7-2h2v2h-2v-2z" />
                 </svg>
               </div>
               <h3 className="feature-title">Community Impact</h3>
@@ -123,7 +123,7 @@ const AboutPage = () => {
               <div className="contact-item">
                 <h3>Address</h3>
                 <p>Washington State University<br />
-                Pullman, WA 99164</p>
+                  Pullman, WA 99164</p>
               </div>
               <div className="contact-item">
                 <h3>Follow Us</h3>
