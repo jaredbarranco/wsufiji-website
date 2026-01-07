@@ -18,7 +18,7 @@ const HomePage = () => {
     <Layout>
 
       {/* Hero Section */}
-      <section className="hero-section" style={{ height: '100vh', minHeight: '600px' }}>
+      <section className="hero-section">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">The Pi Mu Chapter of Phi Gamma Delta</h1>
@@ -106,11 +106,7 @@ const HomePage = () => {
               <div className="stat-label">Active Members</div>
             </div>
             <div className="stat-item">
-              <div className="stat-number">5000+</div>
-              <div className="stat-label">Community Hours</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">$50K</div>
+              <div className="stat-number">$100,000</div>
               <div className="stat-label">Scholarships Awarded</div>
             </div>
           </div>

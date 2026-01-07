@@ -5,7 +5,7 @@ const AboutPage = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="hero-section" style={{ height: '60vh', minHeight: '400px' }}>
+      <section className="hero-section">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">About Phi Gamma Delta</h1>

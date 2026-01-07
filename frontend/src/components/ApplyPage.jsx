@@ -12,17 +12,17 @@ const ApplyPage = () => {
       try {
         const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
         const response = await fetch(`${API_BASE}/scholarships`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch scholarships');
         }
-        
+
         const data = await response.json();
         setScholarships(data);
       } catch (err) {
         console.error('Error fetching scholarships:', err);
         setError(err.message);
-        
+
         // Fallback scholarships for testing
         setScholarships([
           {
@@ -60,9 +60,9 @@ const ApplyPage = () => {
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <h1 className="hero-title">Loading Available Scholarships...</h1>
-             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
-               Please wait while we fetch the latest scholarship opportunities.
-             </p>
+            <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+              Please wait while we fetch the latest scholarship opportunities.
+            </p>
           </div>
         </section>
       </Layout>
@@ -72,13 +72,10 @@ const ApplyPage = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="hero-section" style={{ minHeight: '60vh' }}>
+      <section className="hero-section">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">Scholarship Opportunities</h1>
-           <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
-             Select a scholarship below to start your application. Each scholarship has specific requirements and deadlines.
-           </p>
         </div>
       </section>
 
@@ -96,7 +93,7 @@ const ApplyPage = () => {
               <div key={scholarship.id} className="feature-card" style={{ textAlign: 'center' }}>
                 <div className="feature-icon" style={{ marginBottom: '1.5rem' }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   </svg>
                 </div>
                 <h3 className="feature-title">{scholarship.title}</h3>
@@ -104,8 +101,8 @@ const ApplyPage = () => {
                   {scholarship.description}
                 </p>
                 <div className="scholarship-action">
-                  <Link 
-                    to={`/apply/${scholarship.slug}`} 
+                  <Link
+                    to={`/apply/${scholarship.slug}`}
                     className="hero-btn primary"
                     style={{ display: 'inline-block', padding: '0.75rem 1.5rem', textDecoration: 'none' }}
                   >

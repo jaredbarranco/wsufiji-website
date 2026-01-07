@@ -1214,12 +1214,14 @@ body {
 /* Hero Section */
 .hero-section {
     position: relative;
-    background: url('/pullman_skyline.jpg') center/cover;
+    background: url('/pullman_skyline_subpage.jpg') center/cover;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: #333;
+    height: 65vh;
+    min-height: 450px;
 }
 
 .hero-section-compact {
@@ -1241,6 +1243,7 @@ body {
     z-index: 1;
     max-width: 800px;
     padding: 0 2rem;
+    margin-top: -6rem;
 }
 
 .hero-title {
