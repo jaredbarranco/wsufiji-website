@@ -226,43 +226,15 @@ const ScholarshipFormPage = () => {
     );
   }
 
-return (
+ return (
     <Layout>
       {/* Hero Section */}
       <section className="hero-section">
+        <div className="hero-overlay"></div>
         <div className="hero-content">
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: '700', 
-            color: '#4a05a8', 
-            marginBottom: '1.5rem',
-            fontFamily: 'Playfair Display, Merriweather, serif'
-          }}>
-            {schema.title || 'Scholarship Application'}
+          <h1 className="hero-title">
+            {scholarship?.name || schema.title || 'Scholarship Application'}
           </h1>
-          {scholarship?.description && (
-            <div style={{
-              background: 'white',
-              border: '1px solid #e9ecef',
-              borderRadius: '10px',
-              padding: '2rem',
-              margin: '2rem 0',
-              textAlign: 'left',
-              maxWidth: '800px',
-              marginLeft: 'auto',
-              marginRight: 'auto'
-            }}>
-              <ReactMarkdown>{scholarship.description}</ReactMarkdown>
-            </div>
-          )}
-          <p style={{
-            fontSize: '1.1rem',
-            color: '#666',
-            marginBottom: '2rem',
-            lineHeight: '1.6'
-          }}>
-            Complete the form below to apply for this scholarship. Your progress is automatically saved locally.
-          </p>
           {error && (
             <div style={{
               background: '#f8d7da',
@@ -281,6 +253,26 @@ return (
           )}
         </div>
       </section>
+
+      {/* Scholarship Details Section */}
+      {scholarship?.description && (
+        <section className="scholarship-details-section" style={{ background: '#f4f4f4', padding: '4rem 0' }}>
+          <div className="container">
+            <div style={{
+              background: 'white',
+              border: '1px solid #e9ecef',
+              borderRadius: '10px',
+              padding: '2rem',
+              margin: '0 auto',
+              textAlign: 'left',
+              maxWidth: '800px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Application Form Section */}
       <section className="application-section" style={{ background: '#f4f4f4', padding: '4rem 0' }}>
