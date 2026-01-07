@@ -112,24 +112,20 @@ const AlumniPage = () => {
         <div className="container">
           <div className="form-container">
             <h2 className="section-title">Stay Connected</h2>
-            <p className="form-description">
-              Join our alumni network to stay connected with fellow brothers, mentor current members,
-              and continue your involvement with Phi Gamma Delta.
-            </p>
-            <div className="contact-info">
-              <div className="contact-item">
-                <h3>Email</h3>
-                <p>alumni@fiji.wsu.edu</p>
+             <p className="form-description">
+               Join our alumni network to stay connected with fellow brothers, mentor current members,
+               and continue your involvement with Phi Gamma Delta.
+             </p>
+             <div className="form-actions">
+               <a
+                 href="https://forms.gle/HHar217UiQdw6Mnc6"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="cta-button"
+               >
+                 Update Your Contact Information
+               </a>
               </div>
-              <div className="contact-item">
-                <h3>Alumni Events</h3>
-                <p>Regular networking events and reunions throughout the year</p>
-              </div>
-              <div className="contact-item">
-                <h3>Mentorship Program</h3>
-                <p>Connect with current members for career guidance and support</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
