@@ -1420,13 +1420,17 @@ body {
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 3rem;
 }
 
 .stat-item {
     padding: 2rem;
+    text-align: center;
+    min-width: 200px;
+    flex-shrink: 0;
 }
 
 .stat-number {
@@ -1595,7 +1599,6 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
         gap: 2rem;
     }
     
@@ -1630,7 +1633,8 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        gap: 1rem;
     }
     
     .stat-number {
