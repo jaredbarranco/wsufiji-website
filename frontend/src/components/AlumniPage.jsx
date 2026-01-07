@@ -27,9 +27,9 @@ const AlumniPage = () => {
               </p>
             </div>
             <div className="about-image">
-              <img src="https://images.unsplash.com/photo-1537511446984-935f663eb1f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                alt="Frank Norris Pig Dinner"
-                className="about-img" />
+               <img src="/pig-dinner.png"
+                 alt="Frank Norris Pig Dinner"
+                 className="about-img" />
             </div>
           </div>
         </div>
