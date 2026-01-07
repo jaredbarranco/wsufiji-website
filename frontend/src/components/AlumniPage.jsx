@@ -18,16 +18,14 @@ const AlumniPage = () => {
         <div className="container">
           <div className="about-grid">
             <div className="about-text">
-              <h2 className="section-title">Alumni Network</h2>
+              <h2 className="section-title">Frank Norris Pig Dinner</h2>
               <p className="about-description">
-                Our alumni network spans generations and professions, united by the bonds forged during
-                our time at Phi Gamma Delta. We remain committed to supporting each other, mentoring
-                current members, and contributing to the continued success of our chapter.
+                Phi Gamma Delta’s Norris Pig Dinners are the most widely observed and longest continually running, chapter-based, annual graduate event in the Greek world. The first Pig Dinner was held at the University of California Berkeley in 1893. In 1902, the Pig Dinner was dedicated in memory of Frank Norris (California Berkeley 1894), whose sense of humor created the event that has become an annual ceremony throughout Phi Gamma Delta.
               </p>
             </div>
             <div className="about-image">
               <img src="https://images.unsplash.com/photo-1537511446984-935f663eb1f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                alt="Alumni Network"
+                alt="Frank Norris Pig Dinner"
                 className="about-img" />
             </div>
           </div>
@@ -112,20 +110,20 @@ const AlumniPage = () => {
         <div className="container">
           <div className="form-container">
             <h2 className="section-title">Stay Connected</h2>
-             <p className="form-description">
-               Join our alumni network to stay connected with fellow brothers, mentor current members,
-               and continue your involvement with Phi Gamma Delta.
-             </p>
-             <div className="form-actions">
-               <a
-                 href="https://forms.gle/HHar217UiQdw6Mnc6"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 className="cta-button"
-               >
-                 Update Your Contact Information
-               </a>
-              </div>
+            <p className="form-description">
+              Join our alumni network to stay connected with fellow brothers, mentor current members,
+              and continue your involvement with Phi Gamma Delta.
+            </p>
+            <div className="form-actions">
+              <a
+                href="https://forms.gle/HHar217UiQdw6Mnc6"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-button"
+              >
+                Update Your Contact Information
+              </a>
+            </div>
           </div>
         </div>
       </section>
