@@ -21,11 +21,51 @@ const AlumniPage = () => {
               <h2 className="section-title">Frank Norris Pig Dinner</h2>
               <p className="about-description">
                 Phi Gamma Delta’s Norris Pig Dinners are the most widely observed and longest continually running, chapter-based, annual graduate event in the Greek world. The first Pig Dinner was held at the University of California Berkeley in 1893. In 1902, the Pig Dinner was dedicated in memory of Frank Norris (California Berkeley 1894), whose sense of humor created the event that has become an annual ceremony throughout Phi Gamma Delta.
+                <br /><br />
+                Pi Mu's Pig Dinner is typically hosted in Pullman, WA on the first away game or bye week in the Football Season. Be sure to submit your contact information below to stay up-to-date on this year's Pig Dinner plans!
+
               </p>
             </div>
             <div className="about-image">
               <img src="https://images.unsplash.com/photo-1537511446984-935f663eb1f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
                 alt="Frank Norris Pig Dinner"
+                className="about-img" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Fiji Archives Section */}
+      <section className="archives-section">
+        <div className="container">
+          <div className="about-grid">
+            <div className="about-text">
+              <h2 className="section-title">Fiji Archives</h2>
+              <p className="about-description">
+                Help preserve our chapter's rich history by contributing to the Fiji Archives. Graduate brothers are encouraged to share their stories, photos, and memories to ensure our legacy continues for future generations. Visit the archives to explore historical items and learn about our chapter's past.
+              </p>
+              <div className="form-actions">
+                <a
+                  href="https://phigamarchives.historyit.com/items/view/history/696"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cta-button"
+                >
+                  View Archives
+                </a>
+                <a
+                  href="https://phigamarchives.historyit.com/public-sites/about/history"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cta-button"
+                >
+                  Contribute to Archives
+                </a>
+              </div>
+            </div>
+            <div className="about-image">
+              <img src="/fiji-archives-example.png"
+                alt="Fiji Archives Example"
                 className="about-img" />
             </div>
           </div>
