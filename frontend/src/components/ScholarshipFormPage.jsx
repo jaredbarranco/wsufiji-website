@@ -268,7 +268,9 @@ const ScholarshipFormPage = () => {
               maxWidth: '800px',
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
-              <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+              <div className="scholarship-description">
+        <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+      </div>
             </div>
           </div>
         </section>
