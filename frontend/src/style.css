@@ -1309,7 +1309,13 @@ body {
 /* About Section */
 .about-section {
     padding: 5rem 0;
-    background: #f4f4f4;
+    background: white;
+}
+
+/* Archives Section */
+.archives-section {
+    padding: 5rem 0;
+    background: #f0f0f0;
 }
 
 .container {
