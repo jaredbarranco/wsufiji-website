@@ -72,7 +72,7 @@ const ScholarshipFormPage = () => {
   useEffect(() => {
     async function loadForm() {
       try {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+        const API_BASE = import.meta.env.VITE_API_URL;
         const res = await fetch(`${API_BASE}/schema/${scholarshipSlug}`);
 
         if (!res.ok) {
@@ -153,7 +153,7 @@ const ScholarshipFormPage = () => {
     setIsSubmitting(true);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+      const API_BASE = import.meta.env.VITE_API_URL;
       const response = await fetch(`${API_BASE}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
