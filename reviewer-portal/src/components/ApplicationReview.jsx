@@ -11,7 +11,6 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
     overall_rating: '',
     academic_potential: '',
     leadership_potential: '',
-    financial_need: '',
     comments: ''
   })
   const [submitting, setSubmitting] = useState(false)
@@ -147,7 +146,6 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
           overall_rating: response.data.review?.overall_rating || '',
           academic_potential: response.data.review?.academic_potential || '',
           leadership_potential: response.data.review?.leadership_potential || '',
-          financial_need: response.data.review?.financial_need || '',
           comments: response.data.review?.comments || ''
         })
       }
@@ -415,18 +413,7 @@ const ApplicationReview = ({ scholarshipId, scholarshipTitle, onBack }) => {
                   </select>
                 </div>
 
-                <div className="rating-item">
-                  <label>Financial Need (1-10):</label>
-                  <select 
-                    value={reviewData.financial_need}
-                    onChange={(e) => handleReviewChange('financial_need', e.target.value)}
-                  >
-                    <option value="">Select Rating</option>
-                    {[1,2,3,4,5,6,7,8,9,10].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
-                  </select>
-                </div>
+                
 
                 <div className="rating-item">
                   <label>Comments:</label>

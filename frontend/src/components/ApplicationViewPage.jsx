@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import validator from '@rjsf/validator-ajv8';
 import Form from '@rjsf/core';
+import Layout from './Layout';
 
 const ApplicationViewPage = () => {
   const { applicationName, applicationUuid } = useParams();
@@ -32,151 +33,113 @@ const ApplicationViewPage = () => {
     fetchApplication();
   }, [applicationName, applicationUuid]);
 
-  if (loading) {
+if (loading) {
     return (
-      <div className="container">
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <Link to="/" className="nav-logo-link">
-                <h1>WSU Fiji</h1>
-              </Link>
-            </div>
-            <ul className="nav-menu">
-              <li className="nav-item">
-                <Link to="/" className="nav-link">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/apply" className="nav-link">Apply</Link>
-              </li>
-            </ul>
+      <Layout>
+        {/* Hero Section */}
+        <section className="hero-section hero-section-compact">
+          <div className="hero-overlay"></div>
+          <div className="hero-content">
+            <h1 className="hero-title">Loading Application...</h1>
+             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+               Please wait while we fetch application details.
+             </p>
           </div>
-        </nav>
-
-        <main className="apply-main">
-          <div className="apply-container">
-            <div className="loading">
-              <h2>Loading Application...</h2>
-              <p>Please wait while we fetch the application details.</p>
-            </div>
-          </div>
-        </main>
-
-        <footer className="footer">
-          <div className="footer-content">
-            <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+        </section>
+      </Layout>
     );
   }
 
   if (error || !applicationData) {
     return (
-      <div className="container">
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <Link to="/" className="nav-logo-link">
-                <h1>WSU Fiji</h1>
-              </Link>
-            </div>
-            <ul className="nav-menu">
-              <li className="nav-item">
-                <Link to="/" className="nav-link">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/apply" className="nav-link">Apply</Link>
-              </li>
-            </ul>
+      <Layout>
+        {/* Hero Section */}
+        <section className="hero-section hero-section-compact">
+          <div className="hero-overlay"></div>
+          <div className="hero-content">
+            <h1 className="hero-title">Application Not Found</h1>
+             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+               {error || 'The requested application could not be found.'}
+             </p>
+            <Link 
+              to="/apply" 
+              className="hero-btn primary"
+              style={{ display: 'inline-block', padding: '1rem 2rem', textDecoration: 'none' }}
+            >
+              Back to Scholarships
+            </Link>
           </div>
-        </nav>
-
-        <main className="apply-main">
-          <div className="apply-container">
-            <div className="error-message">
-              <h2>Application Not Found</h2>
-              <p>{error || 'The requested application could not be found.'}</p>
-              <Link to="/apply" className="scholarship-btn">Back to Scholarships</Link>
-            </div>
-          </div>
-        </main>
-
-        <footer className="footer">
-          <div className="footer-content">
-            <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+        </section>
+      </Layout>
     );
   }
 
   const { scholarship, application } = applicationData;
 
   return (
-    <div className="container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <h1>WSU Fiji</h1>
-          </div>
-          <ul className="nav-menu">
-            <li className="nav-item">
-              <Link to="/" className="nav-link">Home</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/apply" className="nav-link">Apply</Link>
-            </li>
-          </ul>
-        </div>
-      </nav>
+    <Layout>
+      {/* Application Section */}
+      <section className="features-section">
+        <div className="container">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h1 className="section-title">{scholarship.title}</h1>
+              <p style={{
+                fontSize: '1.1rem',
+                color: '#666',
+                marginBottom: '2rem',
+                lineHeight: '1.6'
+              }}>
+                Application submitted by {application.email} on {new Date(application.created_at).toLocaleDateString()}
+              </p>
+              <div style={{
+                display: 'flex',
+                gap: '2rem',
+                justifyContent: 'center',
+                marginBottom: '2rem',
+                flexWrap: 'wrap'
+              }}>
+                <span className="hero-btn secondary" style={{ display: 'inline-block', padding: '0.5rem 1rem' }}>
+                  Application ID: {application.id}
+                </span>
+                <span className="hero-btn secondary" style={{ display: 'inline-block', padding: '0.5rem 1rem' }}>
+                  Submitted: {new Date(application.created_at).toLocaleString()}
+                </span>
+              </div>
+            </div>
 
-      <main className="apply-main">
-        <div className="apply-container">
-          <div className="apply-header">
-            <h1>{scholarship.title}</h1>
-            <p className="apply-intro">
-              Application submitted by {application.email} on {new Date(application.created_at).toLocaleDateString()}
-            </p>
-            <div className="application-info">
-              <span className="application-id">Application ID: {application.id}</span>
-              <span className="submission-date">Submitted: {new Date(application.created_at).toLocaleString()}</span>
+            <div className="feature-card" style={{ marginBottom: '2rem' }}>
+              <h3 className="feature-title">About This Scholarship</h3>
+              <p className="feature-description">{scholarship.description}</p>
+            </div>
+
+            <div className="feature-card">
+              <h3 className="feature-title">Application Details</h3>
+              <div style={{ background: 'white', padding: '1rem', borderRadius: '8px' }}>
+                <Form
+                  schema={scholarship.form_schema}
+                  uiSchema={scholarship.ui_schema}
+                  formData={application.submission_data}
+                  validator={validator}
+                  disabled={true}
+                  liveValidate={false}
+                />
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <Link 
+                to="/apply" 
+                className="hero-btn primary"
+                style={{ display: 'inline-block', padding: '1rem 2rem', textDecoration: 'none' }}
+              >
+                Back to Scholarships
+              </Link>
             </div>
           </div>
-
-          <div className="scholarship-description">
-            <h3>About This Scholarship</h3>
-            <p>{scholarship.description}</p>
-          </div>
-
-          <div className="application-form">
-            <h3>Application Details</h3>
-            <div className="readonly-form">
-              <Form
-                schema={scholarship.form_schema}
-                uiSchema={scholarship.ui_schema}
-                formData={application.submission_data}
-                validator={validator}
-                disabled={true}
-                liveValidate={false}
-              />
-            </div>
-          </div>
-
-          <div className="application-actions">
-            <Link to="/apply" className="scholarship-btn">
-              Back to Scholarships
-            </Link>
-          </div>
         </div>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-content">
-          <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+      </section>
+    </Layout>
   );
 };
 

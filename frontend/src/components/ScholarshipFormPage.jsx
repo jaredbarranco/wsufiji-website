@@ -5,6 +5,7 @@ import validator from '@rjsf/validator-ajv8';
 import Turnstile from 'react-turnstile';
 import ReactMarkdown from 'react-markdown';
 import { CustomFileWidget } from './CustomFileWidget';
+import Layout from './Layout';
 
 
 
@@ -61,6 +62,7 @@ const ScholarshipFormPage = () => {
   const [error, setError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [formKey, setFormKey] = useState(0); // Key to force re-render of form
+  
 
   // Create a unique key for LocalStorage so different scholarships don't overwrite each other
   const STORAGE_KEY = `draft_${scholarshipSlug}`;
@@ -209,190 +211,186 @@ const ScholarshipFormPage = () => {
 
   if (loading) {
     return (
-      <div className="container">
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <Link to="/" className="nav-logo-link">
-                <h1>WSU Fiji</h1>
-              </Link>
-            </div>
-            <ul className="nav-menu">
-              <li className="nav-item">
-                <Link to="/" className="nav-link">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/apply" className="nav-link">Apply</Link>
-              </li>
-            </ul>
+      <Layout>
+        {/* Hero Section */}
+        <section className="hero-section hero-section-compact">
+          <div className="hero-overlay"></div>
+          <div className="hero-content">
+            <h1 className="hero-title">Loading Application...</h1>
+             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+               Please wait while we prepare your scholarship application.
+             </p>
           </div>
-        </nav>
-
-        <main className="application-main">
-          <div className="application-container">
-            <div className="loading">
-              <h2>Loading Application...</h2>
-              <p>Please wait while we prepare your scholarship application.</p>
-            </div>
-          </div>
-        </main>
-
-        <footer className="footer">
-          <div className="footer-content">
-            <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+        </section>
+      </Layout>
     );
   }
 
-  return (
-    <div className="container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <h1>WSU Fiji</h1>
-          </div>
-          <ul className="nav-menu">
-            <li className="nav-item">
-              <Link to="/" className="nav-link">Home</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/apply" className="nav-link">Apply</Link>
-            </li>
-            <li className="nav-item">
-              <Link to={`/apply/${scholarshipSlug}`} className="nav-link active">Application</Link>
-            </li>
-          </ul>
+ return (
+    <Layout>
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">
+            {scholarship?.name || schema.title || 'Scholarship Application'}
+          </h1>
+          {error && (
+            <div style={{
+              background: '#f8d7da',
+              color: '#721c24',
+              padding: '1rem',
+              borderRadius: '5px',
+              marginBottom: '2rem',
+              border: '1px solid #f5c6cb',
+              textAlign: 'center',
+              maxWidth: '600px',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}>
+              <p>Note: Using demo form. Could not load scholarship details: {error}</p>
+            </div>
+          )}
         </div>
-      </nav>
+      </section>
 
-      <main className="application-main">
-        <div className="application-container">
-          <div className="application-header">
-            <h1>{schema.title || 'Scholarship Application'}</h1>
-            {scholarship?.description && (
+      {/* Scholarship Details Section */}
+      {scholarship?.description && (
+        <section className="scholarship-details-section" style={{ background: '#f4f4f4', padding: '4rem 0' }}>
+          <div className="container">
+            <div style={{
+              background: 'white',
+              border: '1px solid #e9ecef',
+              borderRadius: '10px',
+              padding: '2rem',
+              margin: '0 auto',
+              textAlign: 'left',
+              maxWidth: '800px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
               <div className="scholarship-description">
-                <ReactMarkdown>{scholarship.description}</ReactMarkdown>
-              </div>
-            )}
-            <p className="application-intro">
-              Complete the form below to apply for this scholarship. Your progress is automatically saved locally.
-            </p>
-            {error && (
-              <div className="error-message">
-                <p>Note: Using demo form. Could not load scholarship details: {error}</p>
-              </div>
-            )}
+        <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+      </div>
+            </div>
           </div>
+        </section>
+      )}
 
-            <Form
-            key={`form-${formKey}`} // Force re-render when key changes
-            schema={schema}
-            uiSchema={uiSchema}
-            formData={formData}
-            validator={validator}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            liveValidate={false}
-            showErrorList={false}
-            className="application-form"
-            templates={{
-              ArrayFieldTemplate: CustomArrayFieldTemplate
-            }}
-            widgets={{
-              file: CustomFileWidget
-            }}
-          >
-            <div className="submit-section">
-              {submitError && (
-                <div style={{ 
-                  color: '#d32f2f', 
-                  fontSize: '14px', 
-                  marginBottom: '15px',
-                  padding: '10px',
-                  backgroundColor: '#ffebee',
-                  border: '1px solid #ffcdd2',
-                  borderRadius: '4px',
-                  textAlign: 'center'
-                }}>
-                  {submitError}
-                </div>
-              )}
-              <div style={{ 
-                display: 'flex', 
-                gap: '15px', 
-                justifyContent: 'center',
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  type="button"
-                  onClick={handleClearForm}
-                  disabled={isSubmitting}
-                  className="clear-btn"
-                  style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px 30px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isSubmitting ? 0.6 : 1
-                  }}
-                >
-                  Clear Application
-                </button>
-                
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !turnstileToken}
-                  className={`submit-btn ${isSubmitting ? 'loading' : ''}`}
-                  style={{ 
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px 30px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                    opacity: (!turnstileToken || isSubmitting) ? 0.6 : 1,
-                    cursor: (!turnstileToken || isSubmitting) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Application"}
-                </button>
-              </div>
-              {!turnstileToken && (
-                <p style={{ 
-                  marginTop: '10px', 
-                  fontSize: '14px', 
-                  color: '#666',
-                  textAlign: 'center'
-                }}>
-                  Please complete the security verification below before submitting.
-                </p>
-              )}
-            </div>
-            
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <Turnstile
-                sitekey={TURNSTILE_SITE_KEY}
-                onVerify={(token) => {
-                  console.log('Turnstile verification success, token length:', token ? token.length : 'none');
-                  setTurnstileToken(token);
+      {/* Application Form Section */}
+      <section className="application-section" style={{ background: '#f4f4f4', padding: '4rem 0' }}>
+        <div className="container">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div style={{
+              background: 'white',
+              padding: '2rem',
+              borderRadius: '10px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <Form
+                key={`form-${formKey}`} // Force re-render when key changes
+                schema={schema}
+                uiSchema={uiSchema}
+                formData={formData}
+                validator={validator}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                liveValidate={false}
+                showErrorList={false}
+                className="application-form"
+                templates={{
+                  ArrayFieldTemplate: CustomArrayFieldTemplate
                 }}
-              />
+                widgets={{
+                  file: CustomFileWidget
+                }}
+              >
+                <div className="submit-section">
+                  {submitError && (
+                    <div style={{ 
+                      color: '#d32f2f', 
+                      fontSize: '14px', 
+                      marginBottom: '15px',
+                      padding: '10px',
+                      backgroundColor: '#ffebee',
+                      border: '1px solid #ffcdd2',
+                      borderRadius: '4px',
+                      textAlign: 'center'
+                    }}>
+                      {submitError}
+                    </div>
+                  )}
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '15px', 
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={handleClearForm}
+                      disabled={isSubmitting}
+                      className="hero-btn secondary"
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: '#4a05a8',
+                        border: '2px solid #4a05a8',
+                        padding: '12px 30px',
+                        borderRadius: '6px',
+                        fontSize: '16px',
+                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting ? 0.6 : 1,
+                        fontWeight: '600'
+                      }}
+                    >
+                      Clear Application
+                    </button>
+                    
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !turnstileToken}
+                      className={`hero-btn primary ${isSubmitting ? 'loading' : ''}`}
+                      style={{ 
+                        backgroundColor: '#C5B358',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 30px',
+                        borderRadius: '6px',
+                        fontSize: '16px',
+                        opacity: (!turnstileToken || isSubmitting) ? 0.6 : 1,
+                        cursor: (!turnstileToken || isSubmitting) ? 'not-allowed' : 'pointer',
+                        fontWeight: '600'
+                      }}
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit Application"}
+                    </button>
+                  </div>
+                  {!turnstileToken && (
+                    <p style={{ 
+                      marginTop: '10px', 
+                      fontSize: '14px', 
+                      color: '#666',
+                      textAlign: 'center'
+                    }}>
+                      Please complete the security verification below before submitting.
+                    </p>
+                  )}
+                </div>
+                
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                  <Turnstile
+                    sitekey={TURNSTILE_SITE_KEY}
+                    onVerify={(token) => {
+                      console.log('Turnstile verification success, token length:', token ? token.length : 'none');
+                      setTurnstileToken(token);
+                    }}
+                  />
+                </div>
+              </Form>
             </div>
-          </Form>
+          </div>
         </div>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-content">
-          <p>&copy; 2024 WSU Fiji. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+      </section>
+    </Layout>
   );
 };
 
