@@ -119,59 +119,18 @@ const HomePage = () => {
           <div className="form-container">
             <h2 className="section-title">Join Our Brotherhood</h2>
             <p className="form-description">
-              Interested in becoming part of Phi Gamma Delta? Fill out the form below to get more information about our recruitment process.
+              Interested in becoming part of Phi Gamma Delta? Fill out our recruitment form to learn more about joining our chapter and the recruitment process.
             </p>
-
-            <form className="recruitment-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="first-name">First Name *</label>
-                  <input type="text" id="first-name" name="firstName" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="last-name">Last Name *</label>
-                  <input type="text" id="last-name" name="lastName" required />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="email">Email *</label>
-                  <input type="email" id="email" name="email" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="phone">Phone Number</label>
-                  <input type="tel" id="phone" name="phone" />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="major">Major *</label>
-                  <input type="text" id="major" name="major" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="year">Year *</label>
-                  <select id="year" name="year" required>
-                    <option value="">Select Year</option>
-                    <option value="freshman">Freshman</option>
-                    <option value="sophomore">Sophomore</option>
-                    <option value="junior">Junior</option>
-                    <option value="senior">Senior</option>
-                    <option value="graduate">Graduate</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="message">Why are you interested in Phi Gamma Delta? *</label>
-                <textarea id="message" name="message" rows="4" required></textarea>
-              </div>
-
-              <div className="form-group">
-                <button type="submit" className="submit-btn">Submit Application</button>
-              </div>
-            </form>
+            <div className="form-actions">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfdX-C-LilXXUbD-dMQnICU8yc1KqRK_wAVxzmWhOqqRuxR1g/viewform?usp=publish-editor"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-button"
+              >
+                Recruitment Form
+              </a>
+            </div>
           </div>
         </div>
       </section>
