@@ -4,14 +4,37 @@ import Layout from './Layout';
 const AlumniPage = () => {
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-overlay"></div>
-        <div className="hero-content">
-          <h1 className="hero-title">Graduate Brothers</h1>
-          <p className="hero-subtitle">Not for College Days Alone</p>
-        </div>
-      </section>
+       {/* Hero Section */}
+       <section className="hero-section">
+         <div className="hero-overlay"></div>
+         <div className="hero-content">
+           <h1 className="hero-title">Graduate Brothers</h1>
+           <p className="hero-subtitle">Not for College Days Alone</p>
+         </div>
+       </section>
+
+       {/* Contact Section */}
+       <section className="recruitment-form-section">
+         <div className="container">
+           <div className="form-container">
+             <h2 className="section-title">Stay Connected</h2>
+             <p className="form-description">
+               Join our alumni network to stay connected with fellow brothers, mentor current members,
+               and continue your involvement with Phi Gamma Delta.
+             </p>
+             <div className="form-actions">
+               <a
+                 href="https://forms.gle/HHar217UiQdw6Mnc6"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="cta-button"
+               >
+                 Update Your Contact Information
+               </a>
+             </div>
+           </div>
+         </div>
+       </section>
 
       {/* Mission Section */}
       <section className="about-section">
@@ -22,7 +45,7 @@ const AlumniPage = () => {
               <p className="about-description">
                 Phi Gamma Delta’s Norris Pig Dinners are the most widely observed and longest continually running, chapter-based, annual graduate event in the Greek world. The first Pig Dinner was held at the University of California Berkeley in 1893. In 1902, the Pig Dinner was dedicated in memory of Frank Norris (California Berkeley 1894), whose sense of humor created the event that has become an annual ceremony throughout Phi Gamma Delta.
                 <br /><br />
-                Pi Mu's Pig Dinner is typically hosted in Pullman, WA on the first away game or bye week in the Football Season. Be sure to submit your contact information below to stay up-to-date on this year's Pig Dinner plans!
+                Pi Mu's Pig Dinner is typically hosted in Pullman, WA on the first away game or bye week in the Football Season.                  Be sure to submit your contact information to stay up-to-date on this year's Pig Dinner plans!
 
               </p>
             </div>
@@ -145,28 +168,7 @@ const AlumniPage = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="recruitment-form-section">
-        <div className="container">
-          <div className="form-container">
-            <h2 className="section-title">Stay Connected</h2>
-            <p className="form-description">
-              Join our alumni network to stay connected with fellow brothers, mentor current members,
-              and continue your involvement with Phi Gamma Delta.
-            </p>
-            <div className="form-actions">
-              <a
-                href="https://forms.gle/HHar217UiQdw6Mnc6"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cta-button"
-              >
-                Update Your Contact Information
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+
     </Layout>
   );
 };
