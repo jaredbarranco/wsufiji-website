@@ -27,7 +27,7 @@ export const CustomFileWidget = ({ value, onChange, options }) => {
     setProgress(0);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+      const API_BASE = import.meta.env.VITE_API_URL;
       console.log('API_BASE:', API_BASE);
       console.log('Turnstile isReady:', isReady);
       console.log('Widget container exists:', !!containerRef.current);
