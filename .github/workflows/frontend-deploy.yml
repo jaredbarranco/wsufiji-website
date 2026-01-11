@@ -10,6 +10,7 @@ on:
     paths:
       - ".github/workflows/frontend-deploy.yml"
       - "frontend/**"   # Optional: PR previews only when frontend changes
+  workflow_dispatch:
 
 jobs:
   # Confirm that the project can be built
