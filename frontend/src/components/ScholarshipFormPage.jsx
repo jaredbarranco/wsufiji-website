@@ -12,7 +12,7 @@ import Layout from './Layout';
 // Custom Array Field Template with better buttons
 const CustomArrayFieldTemplate = (props) => {
   const { items, canAdd, onAddClick } = props;
-  
+
   return (
     <div className="custom-array-field">
       {items.map((element, index) => (
@@ -33,7 +33,7 @@ const CustomArrayFieldTemplate = (props) => {
           )}
         </div>
       ))}
-      
+
       {canAdd && (
         <div className="custom-array-add">
           <button
@@ -62,7 +62,7 @@ const ScholarshipFormPage = () => {
   const [error, setError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [formKey, setFormKey] = useState(0); // Key to force re-render of form
-  
+
 
   // Create a unique key for LocalStorage so different scholarships don't overwrite each other
   const STORAGE_KEY = `draft_${scholarshipSlug}`;
@@ -95,7 +95,7 @@ const ScholarshipFormPage = () => {
       } catch (error) {
         console.error('Error loading form:', error);
         setError(error.message);
-        
+
         // Fallback schema for testing
         setSchema({
           title: `${scholarshipSlug} Scholarship Application`,
@@ -153,7 +153,7 @@ const ScholarshipFormPage = () => {
     setIsSubmitting(true);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787';
       const response = await fetch(`${API_BASE}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,10 +168,10 @@ const ScholarshipFormPage = () => {
         let errorMessage = 'Submission failed';
         try {
           const contentType = response.headers.get('content-type');
-          
+
           // First try to get the response as text
           const responseText = await response.text();
-          
+
           if (contentType && contentType.includes('application/json')) {
             try {
               // Try to parse as JSON
@@ -217,16 +217,16 @@ const ScholarshipFormPage = () => {
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <h1 className="hero-title">Loading Application...</h1>
-             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
-               Please wait while we prepare your scholarship application.
-             </p>
+            <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
+              Please wait while we prepare your scholarship application.
+            </p>
           </div>
         </section>
       </Layout>
     );
   }
 
- return (
+  return (
     <Layout>
       {/* Hero Section */}
       <section className="hero-section">
@@ -269,8 +269,8 @@ const ScholarshipFormPage = () => {
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
               <div className="scholarship-description">
-        <ReactMarkdown>{scholarship.description}</ReactMarkdown>
-      </div>
+                <ReactMarkdown>{scholarship.description}</ReactMarkdown>
+              </div>
             </div>
           </div>
         </section>
@@ -306,9 +306,9 @@ const ScholarshipFormPage = () => {
               >
                 <div className="submit-section">
                   {submitError && (
-                    <div style={{ 
-                      color: '#d32f2f', 
-                      fontSize: '14px', 
+                    <div style={{
+                      color: '#d32f2f',
+                      fontSize: '14px',
                       marginBottom: '15px',
                       padding: '10px',
                       backgroundColor: '#ffebee',
@@ -319,9 +319,9 @@ const ScholarshipFormPage = () => {
                       {submitError}
                     </div>
                   )}
-                  <div style={{ 
-                    display: 'flex', 
-                    gap: '15px', 
+                  <div style={{
+                    display: 'flex',
+                    gap: '15px',
                     justifyContent: 'center',
                     flexWrap: 'wrap'
                   }}>
@@ -344,12 +344,12 @@ const ScholarshipFormPage = () => {
                     >
                       Clear Application
                     </button>
-                    
+
                     <button
                       type="submit"
                       disabled={isSubmitting || !turnstileToken}
                       className={`hero-btn primary ${isSubmitting ? 'loading' : ''}`}
-                      style={{ 
+                      style={{
                         backgroundColor: '#C5B358',
                         color: 'white',
                         border: 'none',
@@ -365,9 +365,9 @@ const ScholarshipFormPage = () => {
                     </button>
                   </div>
                   {!turnstileToken && (
-                    <p style={{ 
-                      marginTop: '10px', 
-                      fontSize: '14px', 
+                    <p style={{
+                      marginTop: '10px',
+                      fontSize: '14px',
                       color: '#666',
                       textAlign: 'center'
                     }}>
@@ -375,7 +375,7 @@ const ScholarshipFormPage = () => {
                     </p>
                   )}
                 </div>
-                
+
                 <div style={{ marginTop: '20px', textAlign: 'center' }}>
                   <Turnstile
                     sitekey={TURNSTILE_SITE_KEY}
