@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend';
+import { ConfirmationEmail } from './emails/ConfirmationEmail.jsx';
 
 // Development bypass for localhost
 function isDevelopmentRequest(request) {
@@ -12,33 +14,33 @@ function authenticateFromHeaders(request, env) {
   if (isDevelopmentRequest(request)) {
     const devEmail = request.headers.get('CF-Access-Client-Id');
     const devName = request.headers.get('X-Dev-Name') || 'Development User';
-    
+
     if (devEmail) {
-      return { 
-        email: devEmail, 
-        name: devName, 
+      return {
+        email: devEmail,
+        name: devName,
         authenticated: true,
-        isDevelopment: true 
+        isDevelopment: true
       };
     }
-    
+
     // Fallback if no dev email provided
-    return { 
-      email: 'dev@localhost', 
-      name: 'Development User', 
+    return {
+      email: 'dev@localhost',
+      name: 'Development User',
       authenticated: true,
-      isDevelopment: true 
+      isDevelopment: true
     };
   }
-  
+
   const email = request.headers.get('CF-Access-Authenticated-User-Email');
   const name = request.headers.get('CF-Access-Authenticated-User-Name');
   const teamDomain = request.headers.get('CF-Access-Domain');
-  
+
   if (!email || !teamDomain) {
     return { error: 'Unauthorized - Missing Zero Trust headers' };
   }
-  
+
   return { email, name, authenticated: true, isDevelopment: false };
 }
 
@@ -94,16 +96,16 @@ async function verifyReviewerRole(supabase, email, requiredRole = 'reviewer') {
     .eq('email', email)
     .eq('is_active', true)
     .single();
-    
+
   if (error || !reviewer) {
     return { error: 'Reviewer not found or inactive' };
   }
-  
+
   const roleHierarchy = { 'admin': 3, 'committee_member': 2, 'reviewer': 1 };
   if (roleHierarchy[reviewer.role] < roleHierarchy[requiredRole]) {
     return { error: 'Insufficient permissions' };
   }
-  
+
   return { reviewer };
 }
 
@@ -111,15 +113,15 @@ async function verifyReviewerRole(supabase, email, requiredRole = 'reviewer') {
 async function protectEndpoint(request, env, requiredRole = 'reviewer') {
   const auth = authenticateFromHeaders(request, env);
   if (auth.error) return { error: auth.error, status: 401 };
-  
+
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
   const roleCheck = await verifyReviewerRole(supabase, auth.email, requiredRole);
   if (roleCheck.error) return { error: roleCheck.error, status: 403 };
-  
-  return { 
-    reviewer: roleCheck.reviewer, 
+
+  return {
+    reviewer: roleCheck.reviewer,
     email: auth.email,
-    isDevelopment: auth.isDevelopment 
+    isDevelopment: auth.isDevelopment
   };
 }
 
@@ -332,13 +334,15 @@ export default {
         }
 
         // 8. Insert Application
-        const { error: insertError } = await supabaseAdmin
+        const { data: insertedApplication, error: insertError } = await supabaseAdmin
           .from('applications')
           .insert({
             scholarship_id: scholarship.id,
             email: userEmail,
             submission_data: processedSubmission.submission_data || processedSubmission
-          });
+          })
+          .select('id')
+          .single();
 
         if (insertError) {
           console.error('Application insert error:', insertError);
@@ -346,6 +350,32 @@ export default {
             status: 500,
             headers: corsHeaders
           });
+        }
+
+        // Send confirmation email
+        try {
+          const requestUrl = new URL(request.url);
+          const isLocal = requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1';
+          const recipient = isLocal ? 'delivered+confirm@resend.dev' : userEmail;
+          const resend = new Resend(env.RESEND_API_KEY);
+          const userName = processedSubmission.fullName || processedSubmission.full_name || processedSubmission.name || 'Applicant';
+          const baseUrl = env.FRONTEND_URL || 'https://wsufiji.com'; // Use FRONTEND_URL if set, else hardcoded frontend URL
+
+          const html = ConfirmationEmail({
+            userName,
+            applicationUrl: `${baseUrl}/apply/${slug}/${insertedApplication.id}`
+          });
+          console.log('HTML type:', typeof html, 'HTML length:', html.length);
+          const data = await resend.emails.send({
+            from: 'Scholarship Team <noreply@confirmation.wsufiji.com>',
+            to: [recipient],
+            subject: 'Scholarship Application Received',
+            html: html,
+          });
+
+          console.log('Confirmation email sent:', data);
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
         }
 
         return new Response(JSON.stringify({ success: true }), {
@@ -525,7 +555,7 @@ export default {
     // Endpoint 5: GET /apply/{applicationName}/{applicationUuid}
     if (request.method === 'GET' && url.pathname.startsWith('/apply/')) {
       const pathParts = url.pathname.split('/').filter(part => part.length > 0);
-      
+
       if (pathParts.length !== 3) {
         return new Response('Invalid URL format. Expected: /apply/{applicationName}/{applicationUuid}', {
           status: 400,
@@ -616,7 +646,7 @@ export default {
 
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data: reviewers, error } = await supabase
           .from('reviewers')
           .select('id, name, email, role, is_active, created_at')
@@ -672,7 +702,7 @@ export default {
         }
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data: reviewer, error } = await supabase
           .from('reviewers')
           .insert({ name, email, role })
@@ -736,7 +766,7 @@ export default {
         }
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data: reviewer, error } = await supabase
           .from('reviewers')
           .update({ name, email, role, is_active })
@@ -791,7 +821,7 @@ export default {
       try {
         const reviewerId = url.pathname.split('/').pop();
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { error } = await supabase
           .from('reviewers')
           .delete()
@@ -823,9 +853,9 @@ export default {
       try {
         const auth = authenticateFromHeaders(request, env);
         if (auth.error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: auth.error 
+          return new Response(JSON.stringify({
+            success: false,
+            error: auth.error
           }), {
             status: 401,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -834,19 +864,19 @@ export default {
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         const roleCheck = await verifyReviewerRole(supabase, auth.email, 'reviewer');
-        
+
         if (roleCheck.error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: roleCheck.error 
+          return new Response(JSON.stringify({
+            success: false,
+            error: roleCheck.error
           }), {
             status: 403,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
-        return new Response(JSON.stringify({ 
-          success: true, 
+        return new Response(JSON.stringify({
+          success: true,
           data: {
             id: roleCheck.reviewer.id,
             name: roleCheck.reviewer.name,
@@ -860,9 +890,9 @@ export default {
 
       } catch (error) {
         console.error('Auth endpoint error:', error);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'Authentication failed' 
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Authentication failed'
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -875,9 +905,9 @@ export default {
       try {
         const auth = authenticateFromHeaders(request, env);
         if (auth.error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: auth.error 
+          return new Response(JSON.stringify({
+            success: false,
+            error: auth.error
           }), {
             status: 401,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -886,11 +916,11 @@ export default {
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
         const roleCheck = await verifyReviewerRole(supabase, auth.email, 'reviewer');
-        
+
         if (roleCheck.error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: roleCheck.error 
+          return new Response(JSON.stringify({
+            success: false,
+            error: roleCheck.error
           }), {
             status: 403,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -905,17 +935,17 @@ export default {
 
         if (error) {
           console.error('Scholarships query error:', error);
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Failed to fetch scholarships' 
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Failed to fetch scholarships'
           }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
-        return new Response(JSON.stringify({ 
-          success: true, 
+        return new Response(JSON.stringify({
+          success: true,
           data: scholarships || []
         }), {
           status: 200,
@@ -924,9 +954,9 @@ export default {
 
       } catch (error) {
         console.error('Scholarships endpoint error:', error);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'Failed to fetch scholarships' 
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to fetch scholarships'
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -946,7 +976,7 @@ export default {
 
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
+
         const { data: scholarships, error } = await supabase
           .from('scholarships')
           .select('id, slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility, created_at, updated_at')
@@ -983,11 +1013,11 @@ export default {
         });
       }
 
-       try {
-         const body = await request.json();
-         const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
+      try {
+        const body = await request.json();
+        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
 
-         if (!slug || !title) {
+        if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -995,8 +1025,8 @@ export default {
         }
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
-         const { data: scholarship, error } = await supabase
+
+        const { data: scholarship, error } = await supabase
           .from('scholarships')
           .insert({
             slug,
@@ -1050,9 +1080,9 @@ export default {
       }
 
       try {
-         const scholarshipId = url.pathname.split('/').pop();
-         const body = await request.json();
-         const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
+        const scholarshipId = url.pathname.split('/').pop();
+        const body = await request.json();
+        const { slug, title, description, verbose_description, deadline, active, form_schema, ui_schema, reviewer_field_visibility } = body;
 
         if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
@@ -1062,8 +1092,8 @@ export default {
         }
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-        
-         const { data: scholarship, error } = await supabase
+
+        const { data: scholarship, error } = await supabase
           .from('scholarships')
           .update({
             slug,
