@@ -92,20 +92,38 @@ if (loading) {
               }}>
                 Application submitted by {application.email} on {new Date(application.created_at).toLocaleDateString()}
               </p>
-              <div style={{
-                display: 'flex',
-                gap: '2rem',
-                justifyContent: 'center',
-                marginBottom: '2rem',
-                flexWrap: 'wrap'
-              }}>
-                <span className="hero-btn secondary" style={{ display: 'inline-block', padding: '0.5rem 1rem' }}>
-                  Application ID: {application.id}
-                </span>
-                <span className="hero-btn secondary" style={{ display: 'inline-block', padding: '0.5rem 1rem' }}>
-                  Submitted: {new Date(application.created_at).toLocaleString()}
-                </span>
-              </div>
+               <div style={{
+                 display: 'flex',
+                 gap: '2rem',
+                 justifyContent: 'center',
+                 marginBottom: '2rem',
+                 flexWrap: 'wrap'
+               }}>
+                 <span style={{
+                   display: 'inline-block',
+                   padding: '0.5rem 1rem',
+                   background: '#f8f9fa',
+                   border: '2px solid #e9ecef',
+                   borderRadius: '6px',
+                   color: '#2c3e50',
+                   fontWeight: '600',
+                   fontSize: '0.9rem'
+                 }}>
+                   Application ID: {application.id}
+                 </span>
+                 <span style={{
+                   display: 'inline-block',
+                   padding: '0.5rem 1rem',
+                   background: '#f8f9fa',
+                   border: '2px solid #e9ecef',
+                   borderRadius: '6px',
+                   color: '#2c3e50',
+                   fontWeight: '600',
+                   fontSize: '0.9rem'
+                 }}>
+                   Submitted: {new Date(application.created_at).toLocaleString()}
+                 </span>
+               </div>
             </div>
 
             <div className="feature-card" style={{ marginBottom: '2rem' }}>
