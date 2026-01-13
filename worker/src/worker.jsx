@@ -1220,9 +1220,11 @@ export default {
             email,
             submission_data,
             created_at,
-            scholarships!inner(id, title)
+            scholarships!inner(id, title),
+            reviews!left(reviewer_id, status, review_data, completed_at)
           `)
           .eq('scholarship_id', scholarshipId)
+          .eq('reviews.reviewer_id', auth.reviewer.id)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -1236,13 +1238,14 @@ export default {
         // Transform the data to include review status with field filtering
         const transformedApplications = applications.map(app => {
           const filteredSubmissionData = filterSubmissionData(app.submission_data, scholarship.reviewer_field_visibility);
+          const review = app.reviews?.[0]; // Since left join, might be null
           return {
             id: app.id,
             email: app.email,
             submission_data: filteredSubmissionData,
             created_at: app.created_at,
-            reviewed: app.submission_data?.review ? true : false,
-            review: app.submission_data?.review || null
+            reviewed: !!review,
+            review: review ? review.review_data : null
           };
         });
 
@@ -1280,9 +1283,11 @@ export default {
             email,
             submission_data,
             created_at,
-            scholarships!inner(id, title, form_schema, reviewer_field_visibility)
+            scholarships!inner(id, title, form_schema, reviewer_field_visibility),
+            reviews!left(reviewer_id, status, review_data, completed_at)
           `)
           .eq('id', applicationId)
+          .eq('reviews.reviewer_id', auth.reviewer.id)
           .single();
 
         if (error) {
@@ -1297,14 +1302,16 @@ export default {
         const visibilityConfig = application.scholarships.reviewer_field_visibility;
         const filteredSubmissionData = filterSubmissionData(application.submission_data, visibilityConfig);
 
+        const review = application.reviews?.[0]; // Since left join, might be null
+
         // Transform the data to match frontend expectations
         const transformedApplication = {
           id: application.id,
           email: application.email,
           submission_data: filteredSubmissionData,
           submitted_at: application.created_at,
-          reviewed: application.submission_data?.review ? true : false,
-          review: application.submission_data?.review || null,
+          reviewed: !!review,
+          review: review ? review.review_data : null,
           // Add applicant info extracted from filtered submission_data
           applicant: {
             email: application.email,
@@ -1358,51 +1365,47 @@ export default {
 
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
-        // First, get the current application data
-        const { data: application, error: fetchError } = await supabase
-          .from('applications')
-          .select('submission_data')
-          .eq('id', applicationId)
+        // Determine recommendation based on overall rating (assuming 1-10 scale)
+        let recommendation = null;
+        const rating = parseInt(overall_rating);
+        if (rating >= 9) recommendation = 'strong_accept';
+        else if (rating >= 7) recommendation = 'accept';
+        else if (rating >= 5) recommendation = 'neutral';
+        else if (rating >= 3) recommendation = 'reject';
+        else recommendation = 'strong_reject';
+
+        // Prepare the review data for the reviews table
+        const reviewData = {
+          application_id: applicationId,
+          reviewer_id: auth.reviewer.id,
+          status: 'completed',
+          review_data: {
+            overall_rating: parseInt(overall_rating),
+            academic_potential: academic_potential ? parseInt(academic_potential) : null,
+            leadership_potential: leadership_potential ? parseInt(leadership_potential) : null,
+            comments: comments || null,
+            recommendation: recommendation,
+            submitted_at: new Date().toISOString()
+          },
+          completed_at: new Date().toISOString()
+        };
+
+        // Insert or update the review in the reviews table (upsert based on application_id and reviewer_id)
+        const { data: insertedReview, error: insertError } = await supabase
+          .from('reviews')
+          .upsert(reviewData, { onConflict: 'application_id,reviewer_id' })
+          .select()
           .single();
 
-        if (fetchError || !application) {
-          console.error('Application fetch error:', fetchError);
-          return new Response(JSON.stringify({ success: false, error: 'Application not found' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        // Prepare the review data
-        const reviewData = {
-          overall_rating: parseInt(overall_rating),
-          academic_potential: academic_potential ? parseInt(academic_potential) : null,
-          leadership_potential: leadership_potential ? parseInt(leadership_potential) : null,
-          comments: comments || null,
-          reviewer_id: auth.reviewer.id,
-          submitted_at: new Date().toISOString()
-        };
-
-        // Update the application with the review data
-        const updatedSubmissionData = {
-          ...application.submission_data,
-          review: reviewData
-        };
-
-        const { error: updateError } = await supabase
-          .from('applications')
-          .update({ submission_data: updatedSubmissionData })
-          .eq('id', applicationId);
-
-        if (updateError) {
-          console.error('Review submission error:', updateError);
+        if (insertError) {
+          console.error('Review submission error:', insertError);
           return new Response(JSON.stringify({ success: false, error: 'Failed to submit review' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
-        return new Response(JSON.stringify({ success: true, data: reviewData }), {
+        return new Response(JSON.stringify({ success: true, data: insertedReview.review_data }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
