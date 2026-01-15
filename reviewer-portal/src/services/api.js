@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -11,7 +11,7 @@ class ApiError extends Error {
 
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
