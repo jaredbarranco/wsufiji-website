@@ -59,88 +59,88 @@ const config = {
 }
 
 export const auth = async () => {
-  return apiRequest('/api/reviewer/auth', {
+  return apiRequest('/reviewer/auth', {
     method: 'POST',
   })
 }
 
 export const getProgress = async (scholarshipId) => {
-  return apiRequest(`/api/reviewer/progress/${scholarshipId}`)
+  return apiRequest(`/reviewer/progress/${scholarshipId}`)
 }
 
 export const getPhase1Applications = async (scholarshipId) => {
-  return apiRequest(`/api/reviewer/phase1/applications/${scholarshipId}`)
+  return apiRequest(`/reviewer/phase1/applications/${scholarshipId}`)
 }
 
 export const submitPhase1Decision = async (applicationId, decision, comments) => {
-  return apiRequest(`/api/reviewer/phase1/${applicationId}`, {
+  return apiRequest(`/reviewer/phase1/${applicationId}`, {
     method: 'POST',
     body: JSON.stringify({ decision, comments }),
   })
 }
 
 export const getReviewers = async () => {
-  return apiRequest('/api/admin/reviewers')
+  return apiRequest('/admin/reviewers')
 }
 
 export const createReviewer = async (reviewerData) => {
-  return apiRequest('/api/admin/reviewers', {
+  return apiRequest('/admin/reviewers', {
     method: 'POST',
     body: JSON.stringify(reviewerData),
   })
 }
 
 export const updateReviewer = async (reviewerId, reviewerData) => {
-  return apiRequest(`/api/admin/reviewers/${reviewerId}`, {
+  return apiRequest(`/admin/reviewers/${reviewerId}`, {
     method: 'PUT',
     body: JSON.stringify(reviewerData),
   })
 }
 
 export const deleteReviewer = async (reviewerId) => {
-  return apiRequest(`/api/admin/reviewers/${reviewerId}`, {
+  return apiRequest(`/admin/reviewers/${reviewerId}`, {
     method: 'DELETE',
   })
 }
 
 export const getActiveScholarships = async () => {
-  return apiRequest('/api/reviewer/scholarships')
+  return apiRequest('/reviewer/scholarships')
 }
 
 export const getScholarships = async () => {
-  return apiRequest('/api/admin/scholarships')
+  return apiRequest('/admin/scholarships')
 }
 
 export const createScholarship = async (scholarshipData) => {
-  return apiRequest('/api/admin/scholarships', {
+  return apiRequest('/admin/scholarships', {
     method: 'POST',
     body: JSON.stringify(scholarshipData),
   })
 }
 
 export const updateScholarship = async (scholarshipId, scholarshipData) => {
-  return apiRequest(`/api/admin/scholarships/${scholarshipId}`, {
+  return apiRequest(`/admin/scholarships/${scholarshipId}`, {
     method: 'PUT',
     body: JSON.stringify(scholarshipData),
   })
 }
 
 export const deleteScholarship = async (scholarshipId) => {
-  return apiRequest(`/api/admin/scholarships/${scholarshipId}`, {
+  return apiRequest(`/admin/scholarships/${scholarshipId}`, {
     method: 'DELETE',
   })
 }
 
 export const getApplicationsForScholarship = async (scholarshipId) => {
-  return apiRequest(`/api/reviewer/applications/${scholarshipId}`)
+  return apiRequest(`/reviewer/applications/${scholarshipId}`)
 }
 
 export const getApplicationDetails = async (applicationId) => {
-  return apiRequest(`/api/reviewer/application/${applicationId}`)
+  return apiRequest(`/reviewer/application/${applicationId}`)
 }
 
 export const submitReview = async (applicationId, reviewData) => {
-  return apiRequest(`/api/reviewer/review/${applicationId}`, {
+  return apiRequest(`/reviewer/review/${applicationId}`, {
     method: 'POST',
     body: JSON.stringify(reviewData),
   })
