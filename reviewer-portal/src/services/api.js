@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
-
+// const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const API_BASE_URL = '/api'
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message)
@@ -30,12 +30,12 @@ const apiRequest = async (endpoint, options = {}) => {
       }
     }
   }
-  
-const config = {
-  headers,
-  credentials: 'include',
-  ...options,
-}
+
+  const config = {
+    headers,
+    credentials: 'include',
+    ...options,
+  }
 
   try {
     const response = await fetch(url, config)
