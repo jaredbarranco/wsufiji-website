@@ -8,12 +8,40 @@ function isDevelopmentRequest(request) {
   return clientIP === '127.0.0.1' || clientIP === '::1';
 }
 
-// Enhanced authentication with development bypass
+// Helper function to get cookie value
+function getCookieValue(cookieString, name) {
+  if (!cookieString) return null;
+  const cookies = cookieString.split(';').map(c => c.trim());
+  for (const cookie of cookies) {
+    if (cookie.startsWith(`${name}=`)) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return null;
+}
+
+// Helper function to decode base64url
+function base64UrlDecode(str) {
+  // Convert base64url to base64
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding if needed
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  // Decode
+  try {
+    return atob(base64);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Enhanced authentication with development bypass and JWT cookie support
 function authenticateFromHeaders(request, env) {
-  // Development bypass - check for local headers first
+  // Development bypass
   if (isDevelopmentRequest(request)) {
     const devEmail = request.headers.get('CF-Access-Client-Id');
-    const devName = request.headers.get('X-Dev-Name') || 'Development User';
+    const devName = request.headers.get('X-Dev-Name');
 
     if (devEmail) {
       return {
@@ -33,16 +61,53 @@ function authenticateFromHeaders(request, env) {
     };
   }
 
-  const email = request.headers.get('CF-Access-Authenticated-User-Email');
-  const name = request.headers.get('CF-Access-Authenticated-User-Name');
+  // First try CF-Access headers (legacy)
+  let email = request.headers.get('CF-Access-Authenticated-User-Email');
+  let name = request.headers.get('CF-Access-Authenticated-User-Name');
   const teamDomain = request.headers.get('CF-Access-Domain');
 
-  if (!email || !teamDomain) {
-    return { error: 'Unauthorized - Missing Zero Trust headers' };
+  if (email && teamDomain) {
+    return { email, name, authenticated: true, isDevelopment: false };
   }
 
-  return { email, name, authenticated: true, isDevelopment: false };
+  // If headers not present, try CF_Authorization cookie with JWT
+  const cookieString = request.headers.get('cookie');
+  const jwtToken = getCookieValue(cookieString, 'CF_Authorization');
+
+  if (jwtToken) {
+    try {
+      // Split JWT into parts: header.payload.signature
+      const parts = jwtToken.split('.');
+      if (parts.length !== 3) {
+        return { error: 'Invalid JWT format' };
+      }
+
+      // Decode payload (second part)
+      const payload = base64UrlDecode(parts[1]);
+      if (!payload) {
+        return { error: 'Invalid JWT payload' };
+      }
+
+      const claims = JSON.parse(payload);
+
+      // Extract email from payload
+      if (claims.email) {
+        return {
+          email: claims.email,
+          name: claims.name || claims.preferred_username || claims.email.split('@')[0],
+          authenticated: true,
+          isDevelopment: false
+        };
+      }
+    } catch (e) {
+      console.error('JWT decode error:', e);
+      return { error: 'Failed to decode JWT' };
+    }
+  }
+
+  return { error: 'Unauthorized - Missing authentication credentials' };
 }
+
 
 // Field visibility configuration validation and filtering
 function validateFieldVisibilityConfig(config) {
@@ -136,16 +201,28 @@ export default {
       url: request.url
     });
 
-    // CORS headers
-    const corsHeaders = {
+    // CORS headers - different for public vs authenticated endpoints
+    const publicCorsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain, CF-Access-Client-Id, X-Dev-Name, Authorization',
     };
 
+     const origin = request.headers.get('origin');
+     const allowedOrigins = ['https://reviewer.wsufiji.org', 'https://review.barrancolab.com'];
+     const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
+     const reviewerCorsHeaders = {
+       'Access-Control-Allow-Origin': corsOrigin,
+       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+       'Access-Control-Allow-Headers': 'Content-Type, CF-Access-Authenticated-User-Email, CF-Access-Authenticated-User-Name, CF-Access-Domain, CF-Access-Client-Id, X-Dev-Name, Authorization',
+       'Access-Control-Allow-Credentials': 'true',
+     };
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+      const isReviewerEndpoint = url.pathname.startsWith('/api/');
+      return new Response(null, { headers: isReviewerEndpoint ? reviewerCorsHeaders : publicCorsHeaders });
     }
 
     // Endpoint 1: GET /schema/:slug
@@ -167,14 +244,14 @@ export default {
           console.error('Schema fetch error:', error);
           return new Response('Scholarship not found', {
             status: 404,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
         return new Response(JSON.stringify(data), {
           status: 200,
           headers: {
-            ...corsHeaders,
+            ...publicCorsHeaders,
             'Content-Type': 'application/json'
           }
         });
@@ -182,7 +259,7 @@ export default {
         console.error('Request error:', error);
         return new Response('Internal server error', {
           status: 500,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
     }
@@ -199,7 +276,7 @@ export default {
         if (!slug || !submission || !token) {
           return new Response('Missing required fields: slug, submission, token', {
             status: 400,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -220,7 +297,7 @@ export default {
           console.error('Turnstile validation failed:', outcome);
           return new Response('Invalid captcha', {
             status: 403,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -240,7 +317,7 @@ export default {
           console.error('Scholarship fetch error:', scholarshipError);
           return new Response('Scholarship not found', {
             status: 404,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -250,7 +327,7 @@ export default {
         if (!userEmail) {
           return new Response('Email field is required', {
             status: 400,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -266,14 +343,14 @@ export default {
           console.error('Duplicate check error:', checkError);
           return new Response('Database error during duplicate check', {
             status: 500,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
         if (existingApplication) {
           return new Response('You have already applied to this scholarship.', {
             status: 409,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -328,7 +405,7 @@ export default {
             console.error('Error moving file:', error);
             return new Response('Failed to process file uploads', {
               status: 500,
-              headers: corsHeaders
+              headers: publicCorsHeaders
             });
           }
         }
@@ -348,7 +425,7 @@ export default {
           console.error('Application insert error:', insertError);
           return new Response('Database error', {
             status: 500,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -381,7 +458,7 @@ export default {
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: {
-            ...corsHeaders,
+            ...publicCorsHeaders,
             'Content-Type': 'application/json'
           }
         });
@@ -389,7 +466,7 @@ export default {
         console.error('Submit error:', error);
         return new Response('Invalid request format', {
           status: 400,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
     }
@@ -406,7 +483,7 @@ export default {
         if (!filename || !fileType || !fileSize || !token) {
           return new Response('Missing required fields: filename, fileType, fileSize, token', {
             status: 400,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -434,7 +511,7 @@ export default {
           console.error('Turnstile validation failed:', outcome);
           return new Response(`Invalid captcha: ${outcome['error-codes']?.[0] || 'Unknown error'}`, {
             status: 403,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -445,14 +522,14 @@ export default {
         if (!allowedTypes.includes(fileType)) {
           return new Response('Invalid file type. Only PDF, DOCX, JPG, and PNG are allowed.', {
             status: 400,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
         if (fileSize > maxSize) {
           return new Response('File size exceeds 10MB limit.', {
             status: 400,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -482,7 +559,7 @@ export default {
           console.error('Signed URL generation error:', error);
           return new Response('Failed to generate upload URL', {
             status: 500,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -503,7 +580,7 @@ export default {
         }), {
           status: 200,
           headers: {
-            ...corsHeaders,
+            ...publicCorsHeaders,
             'Content-Type': 'application/json'
           }
         });
@@ -512,7 +589,7 @@ export default {
         console.error('Sign upload error:', error);
         return new Response('Invalid request format', {
           status: 400,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
     }
@@ -532,14 +609,14 @@ export default {
           console.error('Scholarships fetch error:', error);
           return new Response('Failed to fetch scholarships', {
             status: 500,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
         return new Response(JSON.stringify(data), {
           status: 200,
           headers: {
-            ...corsHeaders,
+            ...publicCorsHeaders,
             'Content-Type': 'application/json'
           }
         });
@@ -547,7 +624,7 @@ export default {
         console.error('Request error:', error);
         return new Response('Internal server error', {
           status: 500,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
     }
@@ -559,7 +636,7 @@ export default {
       if (pathParts.length !== 3) {
         return new Response('Invalid URL format. Expected: /apply/{applicationName}/{applicationUuid}', {
           status: 400,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
 
@@ -580,7 +657,7 @@ export default {
           console.error('Scholarship fetch error:', scholarshipError);
           return new Response('Scholarship not found', {
             status: 404,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -596,7 +673,7 @@ export default {
           console.error('Application fetch error:', applicationError);
           return new Response('Application not found', {
             status: 404,
-            headers: corsHeaders
+            headers: publicCorsHeaders
           });
         }
 
@@ -621,7 +698,7 @@ export default {
         return new Response(JSON.stringify(responseData), {
           status: 200,
           headers: {
-            ...corsHeaders,
+            ...publicCorsHeaders,
             'Content-Type': 'application/json'
           }
         });
@@ -629,7 +706,7 @@ export default {
         console.error('Request error:', error);
         return new Response('Internal server error', {
           status: 500,
-          headers: corsHeaders
+          headers: publicCorsHeaders
         });
       }
     }
@@ -640,7 +717,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -656,19 +733,19 @@ export default {
           console.error('Reviewers fetch error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Failed to fetch reviewers' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: reviewers }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Reviewers endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -679,7 +756,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -690,14 +767,14 @@ export default {
         if (!name || !email || !role) {
           return new Response(JSON.stringify({ success: false, error: 'Name, email, and role are required' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         if (!['admin', 'reviewer', 'committee_member'].includes(role)) {
           return new Response(JSON.stringify({ success: false, error: 'Invalid role. Must be admin, reviewer, or committee_member' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -714,24 +791,24 @@ export default {
           if (error.code === '23505') {
             return new Response(JSON.stringify({ success: false, error: 'A reviewer with this email already exists' }), {
               status: 409,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
             });
           }
           return new Response(JSON.stringify({ success: false, error: 'Failed to create reviewer' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: reviewer }), {
           status: 201,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Reviewer creation endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -742,7 +819,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -754,14 +831,14 @@ export default {
         if (!name || !email || !role) {
           return new Response(JSON.stringify({ success: false, error: 'Name, email, and role are required' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         if (!['admin', 'reviewer', 'committee_member'].includes(role)) {
           return new Response(JSON.stringify({ success: false, error: 'Invalid role. Must be admin, reviewer, or committee_member' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -779,31 +856,31 @@ export default {
           if (error.code === '23505') {
             return new Response(JSON.stringify({ success: false, error: 'A reviewer with this email already exists' }), {
               status: 409,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
             });
           }
           return new Response(JSON.stringify({ success: false, error: 'Failed to update reviewer' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         if (!reviewer) {
           return new Response(JSON.stringify({ success: false, error: 'Reviewer not found' }), {
             status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: reviewer }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Reviewer update endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -814,7 +891,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -831,19 +908,19 @@ export default {
           console.error('Reviewer deletion error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Failed to delete reviewer' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Reviewer deletion endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -858,7 +935,7 @@ export default {
             error: auth.error
           }), {
             status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -871,7 +948,7 @@ export default {
             error: roleCheck.error
           }), {
             status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -885,7 +962,7 @@ export default {
           }
         }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
 
       } catch (error) {
@@ -895,7 +972,7 @@ export default {
           error: 'Authentication failed'
         }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -910,7 +987,7 @@ export default {
             error: auth.error
           }), {
             status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -923,7 +1000,7 @@ export default {
             error: roleCheck.error
           }), {
             status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -940,7 +1017,7 @@ export default {
             error: 'Failed to fetch scholarships'
           }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -949,7 +1026,7 @@ export default {
           data: scholarships || []
         }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
 
       } catch (error) {
@@ -959,7 +1036,7 @@ export default {
           error: 'Failed to fetch scholarships'
         }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -970,7 +1047,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -986,19 +1063,19 @@ export default {
           console.error('Scholarships fetch error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Failed to fetch scholarships' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: scholarships || [] }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Scholarships endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1009,7 +1086,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1020,7 +1097,7 @@ export default {
         if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1047,24 +1124,24 @@ export default {
           if (error.code === '23505') {
             return new Response(JSON.stringify({ success: false, error: 'A scholarship with this slug already exists' }), {
               status: 409,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
             });
           }
           return new Response(JSON.stringify({ success: false, error: 'Failed to create scholarship' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: scholarship }), {
           status: 201,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Scholarship creation endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1075,7 +1152,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1087,7 +1164,7 @@ export default {
         if (!slug || !title) {
           return new Response(JSON.stringify({ success: false, error: 'Slug and title are required' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1115,31 +1192,31 @@ export default {
           if (error.code === '23505') {
             return new Response(JSON.stringify({ success: false, error: 'A scholarship with this slug already exists' }), {
               status: 409,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
             });
           }
           return new Response(JSON.stringify({ success: false, error: 'Failed to update scholarship' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         if (!scholarship) {
           return new Response(JSON.stringify({ success: false, error: 'Scholarship not found' }), {
             status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: scholarship }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Scholarship update endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1150,7 +1227,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1167,19 +1244,19 @@ export default {
           console.error('Scholarship deletion error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Failed to delete scholarship' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Scholarship deletion endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1190,7 +1267,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1209,7 +1286,7 @@ export default {
           console.error('Scholarship fetch error:', scholarshipError);
           return new Response(JSON.stringify({ success: false, error: 'Failed to fetch scholarship config' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1231,7 +1308,7 @@ export default {
           console.error('Applications fetch error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Failed to fetch applications' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1251,13 +1328,13 @@ export default {
 
         return new Response(JSON.stringify({ success: true, data: transformedApplications }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Applications endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1268,7 +1345,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1294,7 +1371,7 @@ export default {
           console.error('Application fetch error:', error);
           return new Response(JSON.stringify({ success: false, error: 'Application not found' }), {
             status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1329,13 +1406,13 @@ export default {
 
         return new Response(JSON.stringify({ success: true, data: transformedApplication }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Application endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1346,7 +1423,7 @@ export default {
       if (auth.error) {
         return new Response(JSON.stringify({ success: false, error: auth.error }), {
           status: auth.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
@@ -1359,7 +1436,7 @@ export default {
         if (!overall_rating) {
           return new Response(JSON.stringify({ success: false, error: 'Overall rating is required' }), {
             status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
@@ -1401,19 +1478,19 @@ export default {
           console.error('Review submission error:', insertError);
           return new Response(JSON.stringify({ success: false, error: 'Failed to submit review' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
           });
         }
 
         return new Response(JSON.stringify({ success: true, data: insertedReview.review_data }), {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Review submission endpoint error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid request format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...reviewerCorsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
@@ -1428,7 +1505,7 @@ export default {
 
     return new Response(`Method Not Allowed or Endpoint Not Found: ${request.method} ${url.pathname}`, {
       status: 405,
-      headers: corsHeaders
+      headers: reviewerCorsHeaders
     });
   }
 }
