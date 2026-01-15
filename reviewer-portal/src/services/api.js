@@ -31,10 +31,11 @@ const apiRequest = async (endpoint, options = {}) => {
     }
   }
   
-  const config = {
-    headers,
-    ...options,
-  }
+const config = {
+  headers,
+  credentials: 'include',
+  ...options,
+}
 
   try {
     const response = await fetch(url, config)
