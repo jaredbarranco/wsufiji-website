@@ -58,6 +58,33 @@ const AlumniPage = () => {
         </div>
       </section>
 
+      {/* Donate Section */}
+      <section className="recruitment-form-section">
+        <div className="container">
+          <div className="form-container">
+            <h2 className="section-title">Support BCA Operations</h2>
+            <p className="form-description">
+              Your contribution to the BCA Operations Fund helps us continue to support our graduate brothers and undergraduate members. Funds go towards:
+            </p>
+            <ul className="donation-list">
+              <li>Graduate brother events and gatherings</li>
+              <li>Incentives for exceptional effort by undergraduates</li>
+              <li>General operational expenses (Zoom Subscription, etc.)</li>
+            </ul>
+            <div className="form-actions">
+              <a
+                href="https://www.legfi.com/app/fundraisers/fijibca/620"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-button"
+              >
+                Donate to BCA Operations
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Fiji Archives Section */}
       <section className="archives-section">
         <div className="container">
