@@ -30,9 +30,30 @@ body {
 }
 
 .form-description {
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
     font-size: 1.1rem;
     opacity: 0.9;
+}
+
+.donation-list {
+    list-style: none;
+    margin-bottom: 2rem;
+    text-align: left;
+    display: inline-block;
+}
+
+.donation-list li {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.donation-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #ffd700;
+    font-weight: bold;
 }
 
 .recruitment-form {
