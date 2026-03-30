@@ -42,6 +42,13 @@ const AlumniPage = () => {
           <div className="about-grid">
             <div className="about-text">
               <h2 className="section-title">Frank Norris Pig Dinner</h2>
+              <p className="about-description" style={{ fontWeight: 'bold' }}>
+                2026 Pig Dinner is on October 10th in Pullman, WA
+                <br /><br />
+                <a href="https://wsufiji.com/pig" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'underline' }}>
+                  GET YOUR TICKETS HERE
+                </a>
+              </p>
               <p className="about-description">
                 Phi Gamma Delta’s Norris Pig Dinners are the most widely observed and longest continually running, chapter-based, annual graduate event in the Greek world. The first Pig Dinner was held at the University of California Berkeley in 1893. In 1902, the Pig Dinner was dedicated in memory of Frank Norris (California Berkeley 1894), whose sense of humor created the event that has become an annual ceremony throughout Phi Gamma Delta.
                 <br /><br />
