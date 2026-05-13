@@ -519,6 +519,13 @@ export default {
 
     // Endpoint 4: GET /scholarships (optional - for listing available scholarships)
     if (request.method === 'GET' && url.pathname === '/scholarships') {
+      if (env.SCHOLARSHIPS_ENABLED === 'false') {
+        return new Response(JSON.stringify({ error: 'Scholarships disabled' }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 

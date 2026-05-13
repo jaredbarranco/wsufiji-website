@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from './Layout';
 
+const SCHOLARSHIPS_ENABLED = import.meta.env.VITE_SCHOLARSHIPS_ENABLED !== 'false';
+
 const ApplyPage = () => {
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,6 +11,11 @@ const ApplyPage = () => {
 
   useEffect(() => {
     async function fetchScholarships() {
+      if (!SCHOLARSHIPS_ENABLED) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const API_BASE = import.meta.env.VITE_API_URL;
         const response = await fetch(`${API_BASE}/scholarships`);
@@ -23,7 +30,6 @@ const ApplyPage = () => {
         console.error('Error fetching scholarships:', err);
         setError(err.message);
 
-        // Fallback scholarships for testing
         setScholarships([
           {
             id: 1,
@@ -55,7 +61,6 @@ const ApplyPage = () => {
   if (loading) {
     return (
       <Layout>
-        {/* Hero Section */}
         <section className="hero-section hero-section-compact">
           <div className="hero-overlay"></div>
           <div className="hero-content">
@@ -63,6 +68,31 @@ const ApplyPage = () => {
             <p style={{ fontSize: '1.3rem', marginBottom: '2rem', color: '#333' }}>
               Please wait while we fetch the latest scholarship opportunities.
             </p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!SCHOLARSHIPS_ENABLED) {
+    return (
+      <Layout>
+        <section className="hero-section">
+          <div className="hero-overlay"></div>
+          <div className="hero-content">
+            <h1 className="hero-title">Scholarship Applications</h1>
+          </div>
+        </section>
+        <section className="features-section">
+          <div className="container">
+            <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#4a05a8' }}>
+                Applications Opening Soon
+              </h2>
+              <p style={{ fontSize: '1.2rem', color: '#666', maxWidth: '600px', margin: '0 auto' }}>
+                Scholarship applications are currently closed. Please check back later for upcoming opportunities.
+              </p>
+            </div>
           </div>
         </section>
       </Layout>
