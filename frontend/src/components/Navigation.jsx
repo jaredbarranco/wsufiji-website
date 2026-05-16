@@ -31,12 +31,9 @@ const Navigation = () => {
           <li className="nav-item">
             <Link to="/alumni" className={`nav-link ${isActive('/alumni') ? 'active' : ''}`}>Alumni</Link>
           </li>
-          <li className="nav-item">
-            <Link to="/apply" className={`nav-link ${isActive('/apply') ? 'active' : ''}`}>Scholarships</Link>
+<li className="nav-item">
+            <Link to="/#recruitment-form" className="nav-link">Recruitment</Link>
           </li>
-           <li className="nav-item">
-             <Link to="/#recruitment-form" className="nav-link">Recruitment</Link>
-           </li>
         </ul>
 
         {/* Mobile Menu Button */}
@@ -80,24 +77,15 @@ const Navigation = () => {
             Alumni
           </Link>
         </li>
-        <li className="nav-item">
-          <Link
-            to="/apply"
-            className={`nav-link ${isActive('/apply') ? 'active' : ''}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Scholarships
-          </Link>
-        </li>
-         <li className="nav-item">
-           <Link
-             to="/#recruitment-form"
-             className="nav-link"
-             onClick={() => setMobileMenuOpen(false)}
-           >
-             Recruitment
-           </Link>
-         </li>
+<li className="nav-item">
+            <Link
+              to="/#recruitment-form"
+              className="nav-link"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Recruitment
+            </Link>
+          </li>
       </ul>
     </nav>
   );
